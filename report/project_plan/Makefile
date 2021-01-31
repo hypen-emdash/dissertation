@@ -40,4 +40,5 @@ clean:
 	rm -f *.log *.aux *.dvi *.toc *.blg *.bbl
 
 vclean:	clean
-	rm -f *.eps *.ps *.pdf
+	# not eps for now.
+	rm -f *.ps *.pdf
