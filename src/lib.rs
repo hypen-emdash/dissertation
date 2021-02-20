@@ -9,13 +9,13 @@ pub type Plan = Vec<Vec<GuestID>>;
 pub type Relationships = MatrixGraph<GuestID, Relationship, Undirected>;
 
 pub trait SeatingPlanner {
-    fn plan(&self, relationships: Relationships, n_tables: usize) -> Plan;
+    fn plan(&self, relationships: &Relationships, n_tables: usize) -> Plan;
 }
 
-pub fn lonely_guests(plan: Plan, relationships: Relationships) -> usize {
+pub fn lonely_guests(plan: &Plan, relationships: &Relationships) -> usize {
     todo!()
 }
 
-pub fn total_happiness(plan: Plan, relationships: Relationships) -> Relationship {
+pub fn total_happiness(plan: &Plan, relationships: &Relationships) -> Relationship {
     todo!()
 }
