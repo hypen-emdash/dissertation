@@ -38,7 +38,18 @@ pub trait SeatingPlanner {
 }
 
 pub fn lonely_guests(plan: &Plan, relationships: &GuestRelations) -> usize {
-    todo!()
+    let mut n_lonely = 0;
+    for table in plan {
+        for g1 in table.iter() {
+            // A guest is lonely if they have a neutral or negative relationship with everyone else at the table.
+            // It should be assumed that everyone has a neutral relationship with themself.
+            if table.iter().all(|g2| relationships.relationship(*g1, *g2) <= 0) {
+                n_lonely += 1;
+            }
+        }
+    }
+
+    n_lonely
 }
 
 pub fn total_happiness(plan: &Plan, relationships: &GuestRelations) -> i64 {
