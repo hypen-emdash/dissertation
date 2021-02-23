@@ -9,7 +9,7 @@ pub struct GuestRelations {
 
 impl GuestRelations {
     pub fn new(relationships: Vec<Vec<i64>>) -> Self {
-        // TODO: check/force symmetry.
+        // TODO: check/force symmetry and squareness.
         Self::new_unchecked(relationships)
     }
 
