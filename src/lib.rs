@@ -4,12 +4,13 @@
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct GuestRelations {
     // A square array, symmetrical (ie `relationships[i][j] == relationships[j][i]`)
+    // with zeros along the diagonal.
     relationships: Vec<Vec<i64>>,
 }
 
 impl GuestRelations {
     pub fn new(relationships: Vec<Vec<i64>>) -> Self {
-        // TODO: check/force symmetry and squareness.
+        // TODO: check/force symmetry, squareness, and lack of self-loops.
         Self::new_unchecked(relationships)
     }
 
