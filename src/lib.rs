@@ -1,3 +1,5 @@
+mod hill_climb;
+
 /// A complete, undirected graph that models the relationship between
 /// all guests at a wedding.
 /// Guests are indexed as `usize`.
@@ -44,7 +46,10 @@ pub fn lonely_guests(plan: &Plan, relationships: &GuestRelations) -> usize {
         for guest1 in table {
             // A guest is lonely if they have a neutral or negative relationship with everyone else at the table.
             // It should be assumed that everyone has a neutral relationship with themself.
-            if table.iter().all(|guest2| relationships.relationship(*guest1, *guest2) <= 0) {
+            if table
+                .iter()
+                .all(|guest2| relationships.relationship(*guest1, *guest2) <= 0)
+            {
                 n_lonely += 1;
             }
         }
