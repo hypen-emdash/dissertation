@@ -48,3 +48,35 @@ where
         .map(ToOwned::to_owned)
         .collect::<Vec<Vec<usize>>>()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn plan_random_init() {
+        let n_tables = 12;
+        let table_size = 5;
+        let n_guests = n_tables * table_size;
+        let plan = random_plan(thread_rng(), n_guests, n_tables);
+
+        // Correct number of tables.
+        assert_eq!(plan.len(), n_tables);
+
+        // Correct number of guests at each table.
+        for table in &plan {
+            assert_eq!(table.len(), table_size);
+        }
+
+        // Check that each guest appears exactly once.
+        let mut guest_appearances = vec![0; n_guests];
+        for table in &plan {
+            for guest in table {
+                guest_appearances[*guest] += 1;
+            }
+        }
+        for n in guest_appearances {
+            assert_eq!(n, 1);
+        }
+    }
+}
