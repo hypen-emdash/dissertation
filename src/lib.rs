@@ -1,4 +1,5 @@
 mod hill_climb;
+pub use hill_climb::HillClimbingPlanner;
 
 /// A complete, undirected graph that models the relationship between
 /// all guests at a wedding.
@@ -37,7 +38,7 @@ impl GuestRelations {
 pub type Plan = Vec<Vec<usize>>;
 
 pub trait SeatingPlanner {
-    fn plan(&self, relationships: &GuestRelations, n_tables: usize) -> Plan;
+    fn plan(&mut self, relationships: &GuestRelations, n_tables: usize) -> Plan;
 }
 
 pub fn lonely_guests(plan: &Plan, relationships: &GuestRelations) -> usize {
