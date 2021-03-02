@@ -1,4 +1,4 @@
-use super::{GuestRelations, Plan, SeatingPlanner, lonely_guests, total_happiness};
+use super::{lonely_guests, total_happiness, GuestRelations, Plan, SeatingPlanner};
 
 use rand::prelude::*;
 
@@ -30,6 +30,10 @@ where
         let mut plan = random_plan(&mut self.rng, relationships.len(), n_tables);
         for _ in 0..self.iter_lim {
             // Propose a small random change.
+
+            // TODO: if we use a priority queue (or similar) for the tables, we
+            // can increase the likelihood that the most miserable person will
+            // be moved.
             let table1 = self.rng.gen_range(0..n_tables);
             let table2 = self.rng.gen_range(0..n_tables);
 
@@ -47,7 +51,9 @@ where
             let new_happiness = total_happiness(&plan, relationships);
 
             // If we made things worse, go back.
-            if new_n_lonely > old_n_lonely || (new_n_lonely == old_n_lonely && new_happiness < old_happiness) {
+            if new_n_lonely > old_n_lonely
+                || (new_n_lonely == old_n_lonely && new_happiness < old_happiness)
+            {
                 swap_guests(&mut plan, (table1, seat1), (table2, seat2));
             }
         }
@@ -55,7 +61,11 @@ where
     }
 }
 
-fn swap_guests(plan: &mut [Vec<usize>], (table1, seat1): (usize, usize), (table2, seat2): (usize, usize)) {
+fn swap_guests(
+    plan: &mut [Vec<usize>],
+    (table1, seat1): (usize, usize),
+    (table2, seat2): (usize, usize),
+) {
     let tmp = plan[table1][seat1];
     plan[table1][seat1] = plan[table2][seat2];
     plan[table2][seat2] = tmp;
@@ -65,7 +75,7 @@ fn random_plan<R>(mut rng: R, n_guests: usize, n_tables: usize) -> Plan
 where
     R: Rng,
 {
-    assert!(n_guests % n_tables == 0);
+    assert_eq!(n_guests % n_tables, 0);
 
     // Generate a random permutation of guests.
     let mut permutation = (0..n_guests).collect::<Vec<usize>>();
