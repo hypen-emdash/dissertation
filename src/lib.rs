@@ -1,10 +1,12 @@
 mod hill_climb;
 pub use hill_climb::HillClimbingPlanner;
 
+use serde::{Deserialize, Serialize};
+
 /// A complete, undirected graph that models the relationship between
 /// all guests at a wedding.
 /// Guests are indexed as `usize`.
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Deserialize, Serialize)]
 pub struct GuestRelations {
     // A square array, symmetrical (ie `relationships[i][j] == relationships[j][i]`)
     // with zeros along the diagonal.

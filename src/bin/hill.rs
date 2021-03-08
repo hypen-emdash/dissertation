@@ -19,7 +19,6 @@ fn main() {
     }
 
     println!("{:?}", plan);
-
 }
 
 fn spousal_partition(n: usize) -> GuestRelations {
