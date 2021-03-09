@@ -35,6 +35,10 @@ impl GuestRelations {
     pub fn len(&self) -> usize {
         self.relationships.len()
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = impl Iterator<Item = i64> + '_> + '_ {
+        self.relationships.iter().map(|row| row.iter().copied())
+    }
 }
 
 pub type Plan = Vec<Vec<usize>>;
