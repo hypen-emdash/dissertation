@@ -12,7 +12,7 @@ struct Problem {
 }
 
 fn main() {
-    let rels = create_relations(20_000);
+    let rels = create_relations(100);
 
     let popularities: Vec<i64> = rels
         .iter()
@@ -35,15 +35,12 @@ fn create_relations(n_guests: usize) -> GuestRelations {
 
     let mut friend_lists = vec![Vec::new(); n_guests];
 
-    // Start by assigning everyone one random friend.
+    // Start by assigning everyone at least one random friend.
     for i in 0..n_guests {
-        // Give people a random number of friends, but at least one.
-        let mut count = 0;
-        while rng.gen_range(0..=count) == 0 {
+        while rng.gen_range(0..=friend_lists[i].len()) == 0 {
             let j = random_associate(&mut rng, i, 0..n_guests);
             friend_lists[i].push(j);
             friend_lists[j].push(i);
-            count += 1; // This will increment even if i and j are already friends, but it's approximate anyway.
         }
     }
 
