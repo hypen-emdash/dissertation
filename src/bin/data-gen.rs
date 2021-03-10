@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::{ops::Range, str::FromStr};
 use std::io;
 
 use dissertation::GuestRelations;
@@ -6,9 +6,30 @@ use dissertation::GuestRelations;
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use structopt::StructOpt;
+use anyhow::anyhow;
+
+#[derive(Debug, PartialEq, Eq)]
+enum GenerationMethod {
+    Random,
+    CompleteComponents,
+    //Rings,
+}
+
+impl FromStr for GenerationMethod {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "rand" | "random" => Ok(GenerationMethod::Random),
+            "comp" | "complete" | "complete-components" => Ok(GenerationMethod::CompleteComponents),
+            _ => Err(anyhow!("Unrecognised generation method")),
+        }
+    }
+}
 
 #[derive(Debug, StructOpt)]
 struct Opt {
+    method: GenerationMethod,
     n_tables: usize,
     table_size: usize,
 }
@@ -31,9 +52,11 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn run(opt: Opt) -> anyhow::Result<()> {
-    let n_guests = opt.n_tables * opt.table_size;
     //let relations = random_relations(n_guests);
-    let relations = complete_components(opt.n_tables, opt.table_size);
+    let relations = match opt.method {
+        GenerationMethod::CompleteComponents => complete_components(opt.n_tables, opt.table_size),
+        GenerationMethod::Random => random_relations(opt.n_tables * opt.table_size),
+    };
     let problem = Problem {
         relations,
         n_tables: opt.n_tables,
