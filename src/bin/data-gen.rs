@@ -32,7 +32,8 @@ fn main() -> anyhow::Result<()> {
 
 fn run(opt: Opt) -> anyhow::Result<()> {
     let n_guests = opt.n_tables * opt.table_size;
-    let relations = create_relations(n_guests);
+    //let relations = random_relations(n_guests);
+    let relations = complete_components(opt.n_tables, opt.table_size);
     let problem = Problem {
         relations,
         n_tables: opt.n_tables,
@@ -44,8 +45,28 @@ fn run(opt: Opt) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn create_relations(n_guests: usize) -> GuestRelations {
-    let mut friend_lists = create_friend_lists(n_guests);
+/// Tables where everyone knows each other.
+fn complete_components(n_tables: usize, table_size: usize) -> GuestRelations {
+    let n_guests = n_tables * table_size;
+    let mut relations = vec![vec![0; n_guests]; n_guests];
+
+    for table in 0..n_tables {
+        for i in table*table_size..(table+1)*table_size {
+            for j in table*table_size..(table+1)*table_size {
+                relations[i][j] = 1;
+            }
+        }
+    }
+
+    for i in 0..n_guests {
+        relations[i][i] = 0;
+    }
+
+    GuestRelations::new(relations)
+}
+
+fn random_relations(n_guests: usize) -> GuestRelations {
+    let mut friend_lists = random_friend_lists(n_guests);
     friends_of_friends(&mut friend_lists);
 
     let mut relationships = vec![vec![0; n_guests]; n_guests];
@@ -53,7 +74,7 @@ fn create_relations(n_guests: usize) -> GuestRelations {
     GuestRelations::new(relationships)
 }
 
-fn create_friend_lists(n_guests: usize) -> Vec<Vec<usize>> {
+fn random_friend_lists(n_guests: usize) -> Vec<Vec<usize>> {
     let mut rng = thread_rng();
 
     let mut friend_lists = vec![Vec::new(); n_guests];
