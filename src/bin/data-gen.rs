@@ -12,10 +12,11 @@ struct Problem {
 }
 
 fn main() {
-    let friend_lists = create_friend_lists(16);
+    let friend_lists = create_friend_lists(1000);
     for (i, list) in friend_lists.iter().enumerate() {
         println!("{}: {:?}", i, list);
     }
+    println!("avg pop: {}", friend_lists.iter().map(|list| list.len()).sum::<usize>() as f64 / friend_lists.len() as f64);
 }
 
 fn create_relations(n_guests: usize) -> GuestRelations {
