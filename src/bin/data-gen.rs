@@ -20,10 +20,7 @@ struct Problem {
 }
 
 fn main() -> anyhow::Result<()> {
-    let opt = Opt {
-        n_tables: 10,
-        table_size: 6,
-    };
+    let opt = Opt::from_args();
 
     if let Err(e) = run(opt) {
         eprintln!("{}", e);
