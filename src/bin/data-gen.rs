@@ -1,9 +1,17 @@
 use std::ops::Range;
+use std::io;
 
 use dissertation::GuestRelations;
 
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
+use structopt::StructOpt;
+
+#[derive(Debug, StructOpt)]
+struct Opt {
+    n_tables: usize,
+    table_size: usize,
+}
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 struct Problem {
@@ -11,30 +19,37 @@ struct Problem {
     n_tables: usize,
 }
 
-fn main() {
-    let mut friend_lists = create_friend_lists(16);
-    for (i, list) in friend_lists.iter().enumerate() {
-        println!("{}: {:?}", i, list);
-    }
-    println!(
-        "avg pop: {}",
-        friend_lists.iter().map(|list| list.len()).sum::<usize>() as f64
-            / friend_lists.len() as f64
-    );
+fn main() -> anyhow::Result<()> {
+    let opt = Opt {
+        n_tables: 10,
+        table_size: 6,
+    };
 
-    friends_of_friends(&mut friend_lists);
-    for (i, list) in friend_lists.iter().enumerate() {
-        println!("{}: {:?}", i, list);
+    if let Err(e) = run(opt) {
+        eprintln!("{}", e);
+        Err(e)
+    } else {
+        Ok(())
     }
-    println!(
-        "avg pop: {}",
-        friend_lists.iter().map(|list| list.len()).sum::<usize>() as f64
-            / friend_lists.len() as f64
-    );
+}
+
+fn run(opt: Opt) -> anyhow::Result<()> {
+    let n_guests = opt.n_tables * opt.table_size;
+    let relations = create_relations(n_guests);
+    let problem = Problem {
+        relations,
+        n_tables: opt.n_tables,
+    };
+
+    let stdout = io::stdout();
+    let mut handle = stdout.lock();
+    serde_json::to_writer(&mut handle, &problem)?;
+    Ok(())
 }
 
 fn create_relations(n_guests: usize) -> GuestRelations {
-    let friend_lists = create_friend_lists(n_guests);
+    let mut friend_lists = create_friend_lists(n_guests);
+    friends_of_friends(&mut friend_lists);
 
     let mut relationships = vec![vec![0; n_guests]; n_guests];
     fill_adj_matrix(&friend_lists, 1, &mut relationships);
