@@ -12,25 +12,21 @@ struct Problem {
 }
 
 fn main() {
-    let rels = create_relations(100);
-
-    let popularities: Vec<i64> = rels
-        .iter()
-        .map(|rel_list| rel_list.sum::<i64>())
-        .collect();
-    println!("popularities: {:?}", popularities);
-    println!("pop avg: {:?}", popularities.iter().sum::<i64>() as f64 / popularities.len() as f64);
-
-    let problem = Problem {
-        relations: rels,
-        n_tables: 4,
-    };
-    let json = serde_json::to_string(&problem).expect("What could go wrong?");
-    let reconstructed: Problem = serde_json::from_str(&json).expect("We just serialised it.");
-    assert_eq!(problem, reconstructed);
+    let friend_lists = create_friend_lists(16);
+    for (i, list) in friend_lists.iter().enumerate() {
+        println!("{}: {:?}", i, list);
+    }
 }
 
 fn create_relations(n_guests: usize) -> GuestRelations {
+    let friend_lists = create_friend_lists(n_guests);
+
+    let mut relationships = vec![vec![0; n_guests]; n_guests];
+    fill_adj_matrix(&friend_lists, 1, &mut relationships);
+    GuestRelations::new(relationships)
+}
+
+fn create_friend_lists(n_guests: usize) -> Vec<Vec<usize>> {
     let mut rng = thread_rng();
 
     let mut friend_lists = vec![Vec::new(); n_guests];
@@ -44,17 +40,7 @@ fn create_relations(n_guests: usize) -> GuestRelations {
         }
     }
 
-    // Transform the adjacency matrix into an adjacency graph.
-    let mut relationships = vec![vec![0; n_guests]; n_guests];
-    for (guest_id, friend_list) in friend_lists.into_iter().enumerate() {
-        for friend_id in friend_list {
-            // The adjacency list should be symmetrical, so we don't need to
-            // reflect this.
-            relationships[guest_id][friend_id] = 1;
-        }
-    }
-
-    GuestRelations::new(relationships)
+    friend_lists
 }
 
 fn random_associate<R>(mut rng: R, person: usize, choices: Range<usize>) -> usize
@@ -65,6 +51,16 @@ where
         let associate = rng.gen_range(choices.clone());
         if associate != person {
             return associate;
+        }
+    }
+}
+
+fn fill_adj_matrix(lists: &[Vec<usize>], val: i64, matrix: &mut [Vec<i64>]) {
+    for (guest_id, rel_list) in lists.iter().enumerate() {
+        for rel_id in rel_list {
+            // The adjacency list should be symmetrical, so we don't need to
+            // reflect this.
+            matrix[guest_id][*rel_id] = val;
         }
     }
 }
