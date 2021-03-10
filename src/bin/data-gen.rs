@@ -12,7 +12,7 @@ use anyhow::anyhow;
 enum GenerationMethod {
     Random,
     CompleteComponents,
-    //Rings,
+    Rings,
 }
 
 impl FromStr for GenerationMethod {
@@ -22,6 +22,7 @@ impl FromStr for GenerationMethod {
         match s.to_lowercase().as_str() {
             "rand" | "random" => Ok(GenerationMethod::Random),
             "comp" | "complete" | "complete-components" => Ok(GenerationMethod::CompleteComponents),
+            "ring" | "rings" => Ok(GenerationMethod::Rings),
             _ => Err(anyhow!("Unrecognised generation method")),
         }
     }
@@ -54,8 +55,9 @@ fn main() -> anyhow::Result<()> {
 fn run(opt: Opt) -> anyhow::Result<()> {
     //let relations = random_relations(n_guests);
     let relations = match opt.method {
-        GenerationMethod::CompleteComponents => complete_components(opt.n_tables, opt.table_size),
         GenerationMethod::Random => random_relations(opt.n_tables * opt.table_size),
+        GenerationMethod::CompleteComponents => complete_components(opt.n_tables, opt.table_size),
+        GenerationMethod::Rings => rings(opt.n_tables, opt.table_size),
     };
     let problem = Problem {
         relations,
@@ -83,6 +85,21 @@ fn complete_components(n_tables: usize, table_size: usize) -> GuestRelations {
 
     for i in 0..n_guests {
         relations[i][i] = 0;
+    }
+
+    GuestRelations::new(relations)
+}
+
+fn rings(n_tables: usize, table_size: usize) -> GuestRelations {
+    let n_guests = n_tables * table_size;
+    let mut relations = vec![vec![0; n_guests]; n_guests];
+
+    for table in 0..n_tables {
+        for i in 0..table_size {
+            let j = (i + 1) % table_size;
+            relations[table*table_size + i][table*table_size + j] = 1;
+            relations[table*table_size + j][table*table_size + i] = 1;
+        }
     }
 
     GuestRelations::new(relations)
