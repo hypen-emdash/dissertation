@@ -45,8 +45,14 @@ impl GuestRelations {
 
 pub type Plan = Vec<Vec<usize>>;
 
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Problem {
+    pub relations: GuestRelations,
+    pub n_tables: usize,
+}
+
 pub trait SeatingPlanner {
-    fn plan(&mut self, relationships: &GuestRelations, n_tables: usize) -> Plan;
+    fn plan(&mut self, problem: &Problem) -> Plan;
 }
 
 pub fn lonely_guests(plan: &Plan, relationships: &GuestRelations) -> usize {
@@ -78,4 +84,23 @@ pub fn total_happiness(plan: &Plan, relationships: &GuestRelations) -> i64 {
     }
 
     total
+}
+
+pub fn run<T>(mut planner: T) -> anyhow::Result<()>
+where
+    T: SeatingPlanner
+{
+    use std::io::{self, Write};
+
+    let stdin = io::stdin();
+    let reader = stdin.lock();
+
+    let stdout = io::stdout();
+    let mut writer = stdout.lock();
+
+    let problem: Problem = serde_json::from_reader(reader)?;
+    let solution = planner.plan(&problem);
+    write!(writer, "{:?}", solution)?;
+
+    Ok(())
 }

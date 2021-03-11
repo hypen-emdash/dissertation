@@ -1,10 +1,9 @@
 use std::{ops::Range, str::FromStr};
 use std::io;
 
-use dissertation::GuestRelations;
+use dissertation::{GuestRelations, Problem};
 
 use rand::prelude::*;
-use serde::{Deserialize, Serialize};
 use structopt::StructOpt;
 use anyhow::anyhow;
 
@@ -33,12 +32,6 @@ struct Opt {
     method: GenerationMethod,
     n_tables: usize,
     table_size: usize,
-}
-
-#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
-struct Problem {
-    relations: GuestRelations,
-    n_tables: usize,
 }
 
 fn main() -> anyhow::Result<()> {
