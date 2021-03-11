@@ -36,6 +36,8 @@ impl GuestRelations {
         self.relationships.len()
     }
 
+    /// Returns an iterator over the relationships. Should be combined with `.enumerate()`
+    /// if you want the indicies of the relevant guests.
     pub fn iter(&self) -> impl Iterator<Item = impl Iterator<Item = i64> + '_> + '_ {
         self.relationships.iter().map(|row| row.iter().copied())
     }
