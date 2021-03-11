@@ -1,11 +1,11 @@
-use std::{ops::Range, str::FromStr};
 use std::io;
+use std::{ops::Range, str::FromStr};
 
 use dissertation::{GuestRelations, Problem};
 
+use anyhow::anyhow;
 use rand::prelude::*;
 use structopt::StructOpt;
-use anyhow::anyhow;
 
 #[derive(Debug, PartialEq, Eq)]
 enum GenerationMethod {
@@ -69,8 +69,8 @@ fn complete_components(n_tables: usize, table_size: usize) -> GuestRelations {
     let mut relations = vec![vec![0; n_guests]; n_guests];
 
     for table in 0..n_tables {
-        for i in table*table_size..(table+1)*table_size {
-            for j in table*table_size..(table+1)*table_size {
+        for i in table * table_size..(table + 1) * table_size {
+            for j in table * table_size..(table + 1) * table_size {
                 relations[i][j] = 1;
             }
         }
@@ -90,8 +90,8 @@ fn rings(n_tables: usize, table_size: usize) -> GuestRelations {
     for table in 0..n_tables {
         for i in 0..table_size {
             let j = (i + 1) % table_size;
-            relations[table*table_size + i][table*table_size + j] = 1;
-            relations[table*table_size + j][table*table_size + i] = 1;
+            relations[table * table_size + i][table * table_size + j] = 1;
+            relations[table * table_size + j][table * table_size + i] = 1;
         }
     }
 
@@ -141,7 +141,7 @@ fn friends_of_friends(friend_lists: &mut [Vec<usize>]) {
                 .choose(&mut rng)
                 .copied()
                 .expect("Everyone should have at least one friend by now.");
-            
+
             friend_lists[i].push(new_friend);
             friend_lists[new_friend].push(i);
         }
