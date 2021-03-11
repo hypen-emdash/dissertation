@@ -86,21 +86,35 @@ pub fn total_happiness(plan: &Plan, relationships: &GuestRelations) -> i64 {
     total
 }
 
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+struct EvaluatedSolution {
+    pub plan: Plan,
+    pub n_lonely: usize,
+    pub happiness: i64,
+}
+
 pub fn run<T>(mut planner: T) -> anyhow::Result<()>
 where
-    T: SeatingPlanner
+    T: SeatingPlanner,
 {
-    use std::io::{self, Write};
-
+    use std::io;
+    
     let stdin = io::stdin();
     let reader = stdin.lock();
 
     let stdout = io::stdout();
-    let mut writer = stdout.lock();
+    let writer = stdout.lock();
 
     let problem: Problem = serde_json::from_reader(reader)?;
-    let solution = planner.plan(&problem);
-    write!(writer, "{:?}", solution)?;
+    let plan = planner.plan(&problem);
+    let n_lonely = lonely_guests(&plan, &problem.relations);
+    let happiness = total_happiness(&plan, &problem.relations);
+    let solution = EvaluatedSolution {
+        plan,
+        n_lonely,
+        happiness,
+    };
+    serde_json::to_writer(writer, &solution)?;
 
     Ok(())
 }
