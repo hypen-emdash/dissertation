@@ -1,4 +1,4 @@
-use super::{lonely_guests, total_happiness, GuestRelations, Plan, SeatingPlanner};
+use super::*;
 
 use rand::prelude::*;
 
@@ -24,7 +24,9 @@ impl<R> SeatingPlanner for HillClimbingPlanner<R>
 where
     R: Rng,
 {
-    fn plan(&mut self, relationships: &GuestRelations, n_tables: usize) -> Plan {
+    fn plan(&mut self, problem: &Problem) -> Plan {
+        let relationships = &problem.relations;
+        let n_tables = problem.n_tables;
         let table_size = relationships.len() / n_tables;
 
         let mut plan = random_plan(&mut self.rng, relationships.len(), n_tables);

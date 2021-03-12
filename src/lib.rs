@@ -1,10 +1,12 @@
 mod hill_climb;
 pub use hill_climb::HillClimbingPlanner;
 
+use serde::{Deserialize, Serialize};
+
 /// A complete, undirected graph that models the relationship between
 /// all guests at a wedding.
 /// Guests are indexed as `usize`.
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Deserialize, Serialize)]
 pub struct GuestRelations {
     // A square array, symmetrical (ie `relationships[i][j] == relationships[j][i]`)
     // with zeros along the diagonal.
@@ -33,12 +35,24 @@ impl GuestRelations {
     pub fn len(&self) -> usize {
         self.relationships.len()
     }
+
+    /// Returns an iterator over the relationships. Should be combined with `.enumerate()`
+    /// if you want the indicies of the relevant guests.
+    pub fn iter(&self) -> impl Iterator<Item = impl Iterator<Item = i64> + '_> + '_ {
+        self.relationships.iter().map(|row| row.iter().copied())
+    }
 }
 
 pub type Plan = Vec<Vec<usize>>;
 
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Problem {
+    pub relations: GuestRelations,
+    pub n_tables: usize,
+}
+
 pub trait SeatingPlanner {
-    fn plan(&mut self, relationships: &GuestRelations, n_tables: usize) -> Plan;
+    fn plan(&mut self, problem: &Problem) -> Plan;
 }
 
 pub fn lonely_guests(plan: &Plan, relationships: &GuestRelations) -> usize {
@@ -70,4 +84,37 @@ pub fn total_happiness(plan: &Plan, relationships: &GuestRelations) -> i64 {
     }
 
     total
+}
+
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+struct EvaluatedSolution {
+    pub plan: Plan,
+    pub n_lonely: usize,
+    pub happiness: i64,
+}
+
+pub fn run<T>(mut planner: T) -> anyhow::Result<()>
+where
+    T: SeatingPlanner,
+{
+    use std::io;
+    
+    let stdin = io::stdin();
+    let reader = stdin.lock();
+
+    let stdout = io::stdout();
+    let writer = stdout.lock();
+
+    let problem: Problem = serde_json::from_reader(reader)?;
+    let plan = planner.plan(&problem);
+    let n_lonely = lonely_guests(&plan, &problem.relations);
+    let happiness = total_happiness(&plan, &problem.relations);
+    let solution = EvaluatedSolution {
+        plan,
+        n_lonely,
+        happiness,
+    };
+    serde_json::to_writer(writer, &solution)?;
+
+    Ok(())
 }
