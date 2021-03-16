@@ -9,7 +9,8 @@ class Problem:
 
 
 class Solution:
-    def __init__(self, status, variables):
+    def __init__(self, solver,  status, variables):
+        self.solver = solver
         self.status = status
         self.variables = variables
 
@@ -45,7 +46,7 @@ def plan_dinner(guest_relations, n_tables):
 
     status = solver.Solve()
 
-    return Solution(status, variables)
+    return Solution(solver, status, variables)
 
 
 class Variables:
@@ -97,7 +98,8 @@ def get_problem():
 
 def display_sol(solution):
     if solution.status in [pywraplp.Solver.OPTIMAL, pywraplp.Solver.FEASIBLE]:
-        print(solution.variables.at_table)
+        for table in solution.variables.at_table:
+            print([x.solution_value() for x in table])
 
 
 if __name__ == "__main__":
