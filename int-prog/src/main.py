@@ -69,10 +69,17 @@ class Variables:
             for i in range(n_tables)
         ]
 
+        self.n_guests = n_guests
+        self.n_tables = n_tables
+
 
 def get_objective(guest_relations, variables):
-    # TODO: implement
-    return variables.pair_at_table[0][0][0]
+    obj = 0
+    for i in range(variables.n_tables):
+        for j in range(variables.n_guests - 1):
+            for k in range(j + 1, variables.n_guests):
+                obj += guest_relations[j][k] * variables.pair_at_table[i][j][k]
+    return obj
 
 
 def add_constraints(solver, variables):
@@ -91,6 +98,21 @@ def get_problem():
             [0, 0, 0, 0, 1, 0, 1, 1],
             [0, 0, 0, 0, 1, 1, 0, 1],
             [0, 0, 0, 0, 1, 1, 1, 0],
+        ],
+        2,
+    )
+
+def get_negative_problem():
+    return Problem(
+        [
+            [0, -1, -1, -1, 0, 0, 0, 0],
+            [-1, 0, -1, -1, 0, 0, 0, 0],
+            [-1, -1, 0, -1, 0, 0, 0, 0],
+            [-1, -1, -1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, -1, -1, -1],
+            [0, 0, 0, 0, -1, 0, -1, -1],
+            [0, 0, 0, 0, -1, -1, 0, -1],
+            [0, 0, 0, 0, -1, -1, -1, 0],
         ],
         2,
     )
