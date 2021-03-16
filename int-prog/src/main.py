@@ -9,7 +9,7 @@ class Problem:
 
 
 class Solution:
-    def __init__(self, solver,  status, variables):
+    def __init__(self, solver, status, variables):
         self.solver = solver
         self.status = status
         self.variables = variables
@@ -91,14 +91,14 @@ def add_constraints(solver, variables):
         for i in range(variables.n_tables):
             tables_seated_at += variables.at_table[i][j]
         solver.Add(tables_seated_at == 1)
-    
+
     # eq 3 - a table can only fit so many people.
     for i in range(variables.n_tables):
         people_seated = 0
         for j in range(variables.n_guests):
             people_seated += variables.at_table[i][j]
         solver.Add(people_seated <= max_at_table)
-    
+
     # eq 4 - everyone must know at least one person at their table.
     # (TODO)
 
@@ -109,7 +109,7 @@ def add_constraints(solver, variables):
             for j in range(variables.n_guests):
                 lhs += variables.pair_at_table[i][j][k]
             solver.Add(lhs <= max_at_table * variables.at_table[i][k])
-    
+
     # eq 6 - mirror of eq 5.
     for i in range(variables.n_tables):
         for j in range(variables.n_guests):
@@ -117,7 +117,6 @@ def add_constraints(solver, variables):
             for k in range(variables.n_guests):
                 lhs += variables.pair_at_table[i][j][k]
             solver.Add(lhs <= max_at_table * variables.at_table[i][j])
-
 
 
 def get_problem():
@@ -135,11 +134,11 @@ def get_problem():
         2,
     )
 
+
 def display_sol(solution):
-    if solution.status in [pywraplp.Solver.OPTIMAL, pywraplp.Solver.FEASIBLE]:
-        for table in solution.variables.at_table:
-            print([x.solution_value() for x in table])
-        print(f"obj = {solution.solver.Objective().Value()}")
+    for table in solution.variables.at_table:
+        print([x.solution_value() for x in table])
+    print(f"obj = {solution.solver.Objective().Value()}")
 
 
 if __name__ == "__main__":
