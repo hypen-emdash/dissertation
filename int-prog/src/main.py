@@ -83,8 +83,41 @@ def get_objective(guest_relations, variables):
 
 
 def add_constraints(solver, variables):
-    # TODO: implement
-    pass
+    max_at_table = int(variables.n_guests / variables.n_tables)
+
+    # eq 2 - a guest must be seated at exactly one table.
+    for j in range(variables.n_guests):
+        tables_seated_at = 0
+        for i in range(variables.n_tables):
+            tables_seated_at += variables.at_table[i][j]
+        solver.Add(tables_seated_at == 1)
+    
+    # eq 3 - a table can only fit so many people.
+    for i in range(variables.n_tables):
+        people_seated = 0
+        for j in range(variables.n_guests):
+            people_seated += variables.at_table[i][j]
+        solver.Add(people_seated <= max_at_table)
+    
+    # eq 4 - everyone must know at least one person at their table.
+    # (TODO)
+
+    # eq 5 - join the two types of variables. Scale of eq 3.
+    for i in range(variables.n_tables):
+        for k in range(variables.n_guests):
+            lhs = 0
+            for j in range(variables.n_guests):
+                lhs += variables.pair_at_table[i][j][k]
+            solver.Add(lhs <= max_at_table * variables.at_table[i][k])
+    
+    # eq 6 - mirror of eq 5.
+    for i in range(variables.n_tables):
+        for j in range(variables.n_guests):
+            lhs = 0
+            for k in range(variables.n_guests):
+                lhs += variables.pair_at_table[i][j][k]
+            solver.Add(lhs <= max_at_table * variables.at_table[i][j])
+
 
 
 def get_problem():
@@ -102,26 +135,11 @@ def get_problem():
         2,
     )
 
-def get_negative_problem():
-    return Problem(
-        [
-            [0, -1, -1, -1, 0, 0, 0, 0],
-            [-1, 0, -1, -1, 0, 0, 0, 0],
-            [-1, -1, 0, -1, 0, 0, 0, 0],
-            [-1, -1, -1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, -1, -1, -1],
-            [0, 0, 0, 0, -1, 0, -1, -1],
-            [0, 0, 0, 0, -1, -1, 0, -1],
-            [0, 0, 0, 0, -1, -1, -1, 0],
-        ],
-        2,
-    )
-
-
 def display_sol(solution):
     if solution.status in [pywraplp.Solver.OPTIMAL, pywraplp.Solver.FEASIBLE]:
         for table in solution.variables.at_table:
             print([x.solution_value() for x in table])
+        print(f"obj = {solution.solver.Objective().Value()}")
 
 
 if __name__ == "__main__":
