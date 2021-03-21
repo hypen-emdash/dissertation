@@ -1,3 +1,5 @@
+import json
+
 from dataclasses import dataclass
 from ortools.linear_solver import pywraplp
 
@@ -136,9 +138,18 @@ def get_problem():
 
 
 def display_sol(solution):
-    for table in solution.variables.at_table:
-        print([x.solution_value() for x in table])
-    print(f"obj = {solution.solver.Objective().Value()}")
+
+    # The current solution is a list of tables, where each table has a 1 or 0 depending
+    # on whether that guest is there or not.
+    # We convert that to a list of tables, where each table is a list of integers,
+    # representing guest-ids.
+    
+    tables_present = [
+        [j for j, present in enumerate(table_binary) if present.solution_value() > 0]
+        for i, table_binary in enumerate(solution.variables.at_table)
+    ]
+
+    print(json.dumps(tables_present))
 
 
 if __name__ == "__main__":
