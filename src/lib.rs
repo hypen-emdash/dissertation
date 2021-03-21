@@ -107,14 +107,8 @@ where
 
     let problem: Problem = serde_json::from_reader(reader)?;
     let plan = planner.plan(&problem);
-    let n_lonely = lonely_guests(&plan, &problem.relations);
-    let happiness = total_happiness(&plan, &problem.relations);
-    let solution = EvaluatedSolution {
-        plan,
-        n_lonely,
-        happiness,
-    };
-    serde_json::to_writer(writer, &solution)?;
+
+    serde_json::to_writer(writer, &plan)?;
 
     Ok(())
 }
