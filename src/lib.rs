@@ -86,13 +86,6 @@ pub fn total_happiness(plan: &Plan, relationships: &GuestRelations) -> i64 {
     total
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
-struct EvaluatedSolution {
-    pub plan: Plan,
-    pub n_lonely: usize,
-    pub happiness: i64,
-}
-
 pub fn run<T>(mut planner: T) -> anyhow::Result<()>
 where
     T: SeatingPlanner,
