@@ -1,4 +1,5 @@
 import json
+import sys
 
 from dataclasses import dataclass
 from ortools.linear_solver import pywraplp
@@ -122,19 +123,8 @@ def add_constraints(solver, variables):
 
 
 def get_problem():
-    return Problem(
-        [
-            [0, 1, 1, 1, 0, 0, 0, 0],
-            [1, 0, 1, 1, 0, 0, 0, 0],
-            [1, 1, 0, 1, 0, 0, 0, 0],
-            [1, 1, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 1, 1, 1],
-            [0, 0, 0, 0, 1, 0, 1, 1],
-            [0, 0, 0, 0, 1, 1, 0, 1],
-            [0, 0, 0, 0, 1, 1, 1, 0],
-        ],
-        2,
-    )
+    problem_json = json.load(sys.stdin)
+    return Problem(problem_json["relations"]["relationships"], problem_json["n_tables"])
 
 
 def display_sol(solution):
@@ -143,7 +133,7 @@ def display_sol(solution):
     # on whether that guest is there or not.
     # We convert that to a list of tables, where each table is a list of integers,
     # representing guest-ids.
-    
+
     tables_present = [
         [j for j, present in enumerate(table_binary) if present.solution_value() > 0]
         for i, table_binary in enumerate(solution.variables.at_table)
