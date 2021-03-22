@@ -56,24 +56,3 @@ fn main() -> anyhow::Result<()> {
 
     Ok(())
 }
-
-/*
-fn pipe<R, W>(mut reader: R, mut writer: W) -> io::Result<()>
-where
-    R: BufRead,
-    W: Write,
-{
-    loop {
-        let buffer = reader.fill_buf()?;
-        if buffer.len() == 0 {
-            break;
-        }
-
-        writer.write(buffer)?;
-
-        let len = buffer.len();
-        reader.consume(len);
-    }
-    Ok(())
-}
-*/
