@@ -91,7 +91,7 @@ where
     T: SeatingPlanner,
 {
     use std::io;
-    
+
     let stdin = io::stdin();
     let reader = stdin.lock();
 
