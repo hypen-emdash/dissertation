@@ -45,9 +45,9 @@ fn main() -> anyhow::Result<()> {
     if !output.stderr.is_empty() {
         return Err(anyhow!("there was a problem solving the problem."));
     }
+    let plan: Plan = serde_json::from_slice(&output.stdout)?;
 
     // Find out how good the solution is and print that.
-    let plan: Plan = serde_json::from_slice(&output.stdout)?;
     let score = Score {
         happiness: total_happiness(&plan, &problem_data.relations),
         n_lonely: lonely_guests(&plan, &problem_data.relations),
