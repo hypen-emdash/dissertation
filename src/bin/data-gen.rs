@@ -1,5 +1,8 @@
-use std::io;
-use std::{ops::Range, str::FromStr};
+use std::fs::File;
+use std::io::{self, Write};
+use std::ops::Range;
+use std::path::PathBuf;
+use std::str::FromStr;
 
 use dissertation::{GuestRelations, Problem};
 
@@ -32,6 +35,7 @@ struct Opt {
     method: GenerationMethod,
     n_tables: usize,
     table_size: usize,
+    output: Option<PathBuf>,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -46,7 +50,6 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn run(opt: Opt) -> anyhow::Result<()> {
-    //let relations = random_relations(n_guests);
     let relations = match opt.method {
         GenerationMethod::Random => random_relations(opt.n_tables * opt.table_size),
         GenerationMethod::CompleteComponents => complete_components(opt.n_tables, opt.table_size),
@@ -57,9 +60,11 @@ fn run(opt: Opt) -> anyhow::Result<()> {
         n_tables: opt.n_tables,
     };
 
-    let stdout = io::stdout();
-    let mut handle = stdout.lock();
-    serde_json::to_writer(&mut handle, &problem)?;
+    let mut out: Box<dyn Write> = match opt.output {
+        None => Box::new(io::stdout()),
+        Some(path) => Box::new(File::create(path)?),
+    };
+    serde_json::to_writer(&mut out, &problem)?;
     Ok(())
 }
 
