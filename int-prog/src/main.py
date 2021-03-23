@@ -90,24 +90,21 @@ def get_objective(guest_relations, variables):
 def add_constraints(solver, variables):
     max_at_table = int(variables.n_guests / variables.n_tables)
 
-    # eq 2 - a guest must be seated at exactly one table.
+    # original paper | eq 2 - a guest must be seated at exactly one table.
     for j in range(variables.n_guests):
         tables_seated_at = 0
         for i in range(variables.n_tables):
             tables_seated_at += variables.at_table[i][j]
         solver.Add(tables_seated_at == 1)
 
-    # eq 3 - a table can only fit so many people.
+    # original paper | eq 3 - a table can only fit so many people.
     for i in range(variables.n_tables):
         people_seated = 0
         for j in range(variables.n_guests):
             people_seated += variables.at_table[i][j]
         solver.Add(people_seated <= max_at_table)
 
-    # eq 4 - everyone must know at least one person at their table.
-    # (TODO)
-
-    # eq 5 - join the two types of variables. Scale of eq 3.
+    # original paper | eq 5 - join the two types of variables. Scale of eq 3.
     for i in range(variables.n_tables):
         for k in range(variables.n_guests):
             lhs = 0
@@ -115,7 +112,7 @@ def add_constraints(solver, variables):
                 lhs += variables.pair_at_table[i][j][k]
             solver.Add(lhs <= max_at_table * variables.at_table[i][k])
 
-    # eq 6 - mirror of eq 5.
+    # original paper | eq 6 - mirror of eq 5.
     for i in range(variables.n_tables):
         for j in range(variables.n_guests):
             lhs = 0
