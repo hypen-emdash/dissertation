@@ -3,7 +3,8 @@ use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
-use dissertation::{lonely_guests, total_happiness, Plan, Problem};
+use dissertation::{Plan, Problem};
+use dissertation::metrics::{lonely_guests, total_happiness};
 
 use anyhow::anyhow;
 use serde::Serialize;
