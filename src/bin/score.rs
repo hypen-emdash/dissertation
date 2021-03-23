@@ -1,13 +1,13 @@
-use std::{process::{Command, Stdio}};
-use std::path::PathBuf;
 use std::fs::File;
 use std::io::{self, Read, Write};
+use std::path::PathBuf;
+use std::process::{Command, Stdio};
 
-use dissertation::{Plan, Problem, lonely_guests, total_happiness};
+use dissertation::{lonely_guests, total_happiness, Plan, Problem};
 
 use anyhow::anyhow;
-use structopt::StructOpt;
 use serde::Serialize;
+use structopt::StructOpt;
 
 #[derive(StructOpt)]
 struct Opt {
