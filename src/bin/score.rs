@@ -1,7 +1,7 @@
 use std::ffi::{OsStr, OsString};
-use std::fs::{File, ReadDir};
-use std::io::{self, Read, Write};
-use std::path::{Path, PathBuf};
+use std::fs::{self, File, ReadDir};
+use std::io::{Read, Write};
+use std::path::{PathBuf};
 use std::process::{Command, Stdio};
 
 use dissertation::metrics::{lonely_guests, total_happiness};
@@ -39,12 +39,15 @@ fn run(opt: Opt) -> anyhow::Result<()> {
         let wedding_file = File::open(&opt.problem)
             .with_context(|| format!("Could not open problem file: {:?}", &opt.problem))?;
 
-        let score = score_wedding(&opt.solver, &wedding_file)
-            .with_context(|| format!("Could not run {:?} on {:?}.", &opt.solver, &opt.problem))?;
+        let score = score_single(&opt.solver, &wedding_file)
+            .with_context(|| format!("Could not run {:?} on wedding {:?}.", &opt.solver, &opt.problem))?;
 
         println!("{:?}", score);
     } else if opt.problem.is_dir() {
-        todo!("Implement mass scoring for directories.");
+        let entries = fs::read_dir(opt.problem)?;
+        let scores = score_suite(&opt.solver, entries)?;
+
+        println!("{:#?}", scores);
     } else {
         return Err(anyhow!(format!(
             "Could not identify type of {:?}. Possibly a broken symlink?",
@@ -55,7 +58,7 @@ fn run(opt: Opt) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn score_wedding(solver: &OsStr, mut wedding: &File) -> anyhow::Result<Score> {
+fn score_single(solver: &OsStr, mut wedding: &File) -> anyhow::Result<Score> {
     // Create the solver as a child process.
     let mut solver = Command::new(&solver)
         .stdin(Stdio::piped())
@@ -99,6 +102,14 @@ fn score_wedding(solver: &OsStr, mut wedding: &File) -> anyhow::Result<Score> {
     Ok(score)
 }
 
-fn score_suite(solver: &Path, suite: &ReadDir) -> anyhow::Result<Vec<Score>> {
-    todo!()
+fn score_suite(solver: &OsStr, mut suite: ReadDir) -> anyhow::Result<Vec<Score>> {
+    let mut scores = Vec::new();
+    while let Some(Ok(entry)) = suite.next() {
+        if entry.path().is_file() {
+            let file = File::open(&entry.path())?;
+            let score = score_single(solver, &file)?;
+            scores.push(score);
+        }
+    }
+    Ok(scores)
 }
