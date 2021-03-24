@@ -1,5 +1,5 @@
-use crate::{Problem, Plan, SeatingPlanner};
 use crate::metrics::total_happiness;
+use crate::{Plan, Problem, SeatingPlanner};
 
 use rand::prelude::*;
 
