@@ -1,7 +1,7 @@
 use std::ffi::{OsStr, OsString};
-use std::fs::{self, File, ReadDir};
+use std::fs::{self, DirEntry, File};
 use std::io::{Read, Write};
-use std::path::{PathBuf};
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 use dissertation::metrics::{lonely_guests, total_happiness};
@@ -17,10 +17,28 @@ struct Opt {
     problem: PathBuf,
 }
 
-#[derive(Debug, Copy, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 struct Score {
-    happiness: i64,
+    total_happiness: i64,
     n_lonely: usize,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct Record {
+    wedding: PathBuf,
+    // Can't have a struct because we need to serialize.
+    total_happiness: i64,
+    n_lonely: usize,
+}
+
+impl Record {
+    fn new(wedding: PathBuf, score: Score) -> Self {
+        Self {
+            wedding,
+            total_happiness: score.total_happiness,
+            n_lonely: score.n_lonely,
+        }
+    }
 }
 
 fn main() -> anyhow::Result<()> {
@@ -35,27 +53,38 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn run(opt: Opt) -> anyhow::Result<()> {
-    if opt.problem.is_file() {
-        let wedding_file = File::open(&opt.problem)
-            .with_context(|| format!("Could not open problem file: {:?}", &opt.problem))?;
+    let records = score_path(&opt.solver, &opt.problem)?;
 
-        let score = score_single(&opt.solver, &wedding_file)
-            .with_context(|| format!("Could not run {:?} on wedding {:?}.", &opt.solver, &opt.problem))?;
+    let out_file = File::create(opt.problem.with_extension("csv"))?;
+    let mut writer = csv::Writer::from_writer(out_file);
 
-        println!("{:?}", score);
-    } else if opt.problem.is_dir() {
-        let entries = fs::read_dir(opt.problem)?;
-        let scores = score_suite(&opt.solver, entries)?;
-
-        println!("{:#?}", scores);
-    } else {
-        return Err(anyhow!(format!(
-            "Could not identify type of {:?}. Possibly a broken symlink?",
-            opt.problem
-        )));
+    for record in records {
+        writer.serialize(record)?;
     }
 
     Ok(())
+}
+
+fn score_path(solver: &OsStr, problem: &Path) -> anyhow::Result<Vec<Record>> {
+    if problem.is_file() {
+        let wedding_file = File::open(problem)
+            .with_context(|| format!("Could not open problem file: {:?}", problem))?;
+
+        let score = score_single(solver, &wedding_file)
+            .with_context(|| format!("Could not run {:?} on wedding {:?}.", solver, problem))?;
+
+        Ok(vec![Record::new(problem.to_owned(), score)])
+    } else if problem.is_dir() {
+        let entries = fs::read_dir(problem)
+            .with_context(|| format!("Could not open directory {:?}.", problem))?;
+
+        score_suite(solver, entries)
+    } else {
+        Err(anyhow!(format!(
+            "Could not recognise {:?}. Possibly a broken symlink?",
+            problem
+        )))
+    }
 }
 
 fn score_single(solver: &OsStr, mut wedding: &File) -> anyhow::Result<Score> {
@@ -96,20 +125,19 @@ fn score_single(solver: &OsStr, mut wedding: &File) -> anyhow::Result<Score> {
 
     // Find out how good the solution is and return.
     let score = Score {
-        happiness: total_happiness(&plan, &problem_data.relations),
+        total_happiness: total_happiness(&plan, &problem_data.relations),
         n_lonely: lonely_guests(&plan, &problem_data.relations),
     };
     Ok(score)
 }
 
-fn score_suite(solver: &OsStr, mut suite: ReadDir) -> anyhow::Result<Vec<Score>> {
+fn score_suite<I, E>(solver: &OsStr, mut suite: I) -> anyhow::Result<Vec<Record>>
+where
+    I: Iterator<Item = Result<DirEntry, E>>,
+{
     let mut scores = Vec::new();
     while let Some(Ok(entry)) = suite.next() {
-        if entry.path().is_file() {
-            let file = File::open(&entry.path())?;
-            let score = score_single(solver, &file)?;
-            scores.push(score);
-        }
+        scores.extend(score_path(solver, &entry.path())?);
     }
     Ok(scores)
 }
