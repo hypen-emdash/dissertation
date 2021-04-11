@@ -1,4 +1,4 @@
-use crate::metrics::total_happiness;
+use crate::metrics::{Metrics};
 use crate::{Plan, Problem, SeatingPlanner};
 
 use rand::prelude::*;
@@ -44,14 +44,14 @@ where
             let seat2 = self.rng.gen_range(0..table_size);
 
             // Measure current utility.
-            let old_happiness = total_happiness(&plan, relationships);
+            let old_metrics = Metrics::new(&plan, relationships);
 
             // Make the change and measure new utility.
             swap_guests(&mut plan, (table1, seat1), (table2, seat2));
-            let new_happiness = total_happiness(&plan, relationships);
+            let new_metrics = Metrics::new(&plan, relationships);
 
             // If we made things worse, go back.
-            if new_happiness < old_happiness {
+            if new_metrics.total_happiness() < old_metrics.total_happiness() {
                 swap_guests(&mut plan, (table1, seat2), (table2, seat2));
             }
         }
