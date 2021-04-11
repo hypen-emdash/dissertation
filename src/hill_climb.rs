@@ -1,4 +1,4 @@
-use crate::metrics::{Metrics};
+use crate::metrics::Metrics;
 use crate::{Plan, Problem, SeatingPlanner};
 
 use rand::prelude::*;

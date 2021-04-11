@@ -4,7 +4,7 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-use dissertation::metrics::{lonely_guests, total_happiness};
+use dissertation::metrics::{Metrics};
 use dissertation::{Plan, Problem};
 
 use anyhow::{anyhow, Context};
@@ -124,9 +124,10 @@ fn score_single(solver: &OsStr, mut wedding: &File) -> anyhow::Result<Score> {
         .with_context(|| "Could not parse output from solver.")?;
 
     // Find out how good the solution is and return.
+    let metrics = Metrics::new(&plan, &problem_data.relations);
     let score = Score {
-        total_happiness: total_happiness(&plan, &problem_data.relations),
-        n_lonely: lonely_guests(&plan, &problem_data.relations),
+        total_happiness: metrics.total_happiness(),
+        n_lonely: metrics.n_lonely(),
     };
     Ok(score)
 }

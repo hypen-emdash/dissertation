@@ -27,7 +27,10 @@ impl Metrics {
     }
 
     pub fn n_lonely(&self) -> usize {
-        todo!()
+        self.neighbour_relationships
+            .iter()
+            .filter(|v| v.iter().all(|r| *r <= 0))
+            .count()
     }
 
     pub fn happinesses(&self) -> impl Iterator<Item = i64> + '_ {
@@ -39,19 +42,31 @@ impl Metrics {
     }
 
     pub fn mean_happiness(&self) -> f64 {
-        todo!()
+        self.total_happiness() as f64 / self.neighbour_relationships.len() as f64
     }
 
     pub fn median_happiness(&self) -> f64 {
-        todo!()
+        let all: Vec<i64> = self.happinesses().collect();
+
+        let left_i = all.len() - 2;
+        let right_i = all.len() - left_i;
+
+        let left_med = all[left_i] as f64;
+        let right_med = all[right_i] as f64;
+
+        0.5 * (left_med + right_med)
     }
 
     pub fn max_happiness(&self) -> i64 {
-        todo!()
+        self.happinesses()
+            .max()
+            .expect("Expected a nonempty Metrics object.")
     }
 
     pub fn min_happiness(&self) -> i64 {
-        todo!()
+        self.happinesses()
+            .min()
+            .expect("Expected a nonempty Metrics object.")
     }
 }
 
