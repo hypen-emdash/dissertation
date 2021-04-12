@@ -17,27 +17,10 @@ struct Opt {
 }
 
 #[derive(Debug, Clone, Serialize)]
-struct Score {
-    total_happiness: i64,
-    n_lonely: usize,
-}
-
-#[derive(Debug, Clone, Serialize)]
 struct Record {
     wedding: PathBuf,
-    // Can't keep a `Score` struct because we need to serialize to csv.
     total_happiness: i64,
     n_lonely: usize,
-}
-
-impl Record {
-    fn new(wedding: PathBuf, score: Score) -> Self {
-        Self {
-            wedding,
-            total_happiness: score.total_happiness,
-            n_lonely: score.n_lonely,
-        }
-    }
 }
 
 fn main() -> anyhow::Result<()> {
@@ -80,10 +63,10 @@ fn score_path(solver: &Path, problem: &Path) -> anyhow::Result<Vec<Record>> {
         let wedding_file = File::open(problem)
             .with_context(|| format!("Could not open problem file: {:?}", problem))?;
 
-        let score = score_single(solver, &wedding_file)
+        let record = score_single(solver, &wedding_file, problem.to_owned())
             .with_context(|| format!("Could not run {:?} on wedding {:?}.", solver, problem))?;
 
-        Ok(vec![Record::new(problem.to_owned(), score)])
+        Ok(vec![record])
     } else if problem.is_dir() {
         let entries = fs::read_dir(problem)
             .with_context(|| format!("Could not open directory {:?}.", problem))?;
@@ -97,7 +80,7 @@ fn score_path(solver: &Path, problem: &Path) -> anyhow::Result<Vec<Record>> {
     }
 }
 
-fn score_single(solver: &Path, mut wedding: &File) -> anyhow::Result<Score> {
+fn score_single(solver: &Path, mut wedding: &File, wedding_name: PathBuf) -> anyhow::Result<Record> {
     // Create the solver as a child process.
     let mut solver = Command::new(&solver)
         .stdin(Stdio::piped())
@@ -135,7 +118,8 @@ fn score_single(solver: &Path, mut wedding: &File) -> anyhow::Result<Score> {
 
     // Find out how good the solution is and return.
     let metrics = Metrics::new(&plan, &problem_data.relations);
-    let score = Score {
+    let score = Record {
+        wedding: wedding_name,
         total_happiness: metrics.total_happiness(),
         n_lonely: metrics.n_lonely(),
     };
