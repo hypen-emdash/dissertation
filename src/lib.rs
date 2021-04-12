@@ -1,5 +1,8 @@
 mod hill_climb;
+mod lahc;
+
 pub use hill_climb::HillClimbingPlanner;
+pub use lahc::LahcPlanner;
 
 pub mod metrics;
 
