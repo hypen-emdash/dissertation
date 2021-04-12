@@ -1,4 +1,3 @@
-use std::ffi::{OsStr, OsString};
 use std::fs::{self, DirEntry, File};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
@@ -13,7 +12,7 @@ use structopt::StructOpt;
 
 #[derive(StructOpt)]
 struct Opt {
-    solver: OsString,
+    solver: PathBuf,
     problem: PathBuf,
 }
 
@@ -26,7 +25,7 @@ struct Score {
 #[derive(Debug, Clone, Serialize)]
 struct Record {
     wedding: PathBuf,
-    // Can't have a struct because we need to serialize.
+    // Can't keep a `Score` struct because we need to serialize to csv.
     total_happiness: i64,
     n_lonely: usize,
 }
@@ -55,7 +54,7 @@ fn main() -> anyhow::Result<()> {
 fn run(opt: Opt) -> anyhow::Result<()> {
     let records = score_path(&opt.solver, &opt.problem)?;
 
-    let out_file = File::create(opt.problem.with_extension("csv"))?;
+    let out_file = create_out_file(&opt.solver, &opt.problem)?;
     let mut writer = csv::Writer::from_writer(out_file);
 
     for record in records {
@@ -65,7 +64,18 @@ fn run(opt: Opt) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn score_path(solver: &OsStr, problem: &Path) -> anyhow::Result<Vec<Record>> {
+fn create_out_file(solver: &Path, problem: &Path) -> anyhow::Result<File> {
+    let solver_name = solver.file_name().unwrap();
+    let problem_name = problem.file_name().unwrap();
+    let mut csv_name = solver_name.to_owned();
+    csv_name.push("_");
+    csv_name.push(problem_name);
+    let path = problem.with_file_name(csv_name).with_extension("csv");
+
+    File::create(&path).with_context(move || format!("Could not create output file: {:?}", path))
+}
+
+fn score_path(solver: &Path, problem: &Path) -> anyhow::Result<Vec<Record>> {
     if problem.is_file() {
         let wedding_file = File::open(problem)
             .with_context(|| format!("Could not open problem file: {:?}", problem))?;
@@ -87,7 +97,7 @@ fn score_path(solver: &OsStr, problem: &Path) -> anyhow::Result<Vec<Record>> {
     }
 }
 
-fn score_single(solver: &OsStr, mut wedding: &File) -> anyhow::Result<Score> {
+fn score_single(solver: &Path, mut wedding: &File) -> anyhow::Result<Score> {
     // Create the solver as a child process.
     let mut solver = Command::new(&solver)
         .stdin(Stdio::piped())
@@ -132,7 +142,7 @@ fn score_single(solver: &OsStr, mut wedding: &File) -> anyhow::Result<Score> {
     Ok(score)
 }
 
-fn score_suite<I, E>(solver: &OsStr, mut suite: I) -> anyhow::Result<Vec<Record>>
+fn score_suite<I, E>(solver: &Path, mut suite: I) -> anyhow::Result<Vec<Record>>
 where
     I: Iterator<Item = Result<DirEntry, E>>,
 {
