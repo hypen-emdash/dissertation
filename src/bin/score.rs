@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-use dissertation::metrics::{Metrics};
+use dissertation::metrics::Metrics;
 use dissertation::{Plan, Problem};
 
 use anyhow::{anyhow, Context};
@@ -18,8 +18,17 @@ struct Opt {
 
 #[derive(Debug, Clone, Serialize)]
 struct Record {
+    // Data about the problem
     wedding: PathBuf,
+    n_people: usize,
+    n_tables: usize,
+
+    // Metrics of solution quality.
     total_happiness: i64,
+    mean_happiness: f64,
+    median_happiness: f64,
+    min_happiness: i64,
+    max_happiness: i64,
     n_lonely: usize,
 }
 
@@ -81,7 +90,11 @@ fn score_path(solver: &Path, problem: &Path) -> anyhow::Result<Vec<Record>> {
     }
 }
 
-fn score_single(solver: &Path, mut wedding: &File, wedding_name: PathBuf) -> anyhow::Result<Record> {
+fn score_single(
+    solver: &Path,
+    mut wedding: &File,
+    wedding_name: PathBuf,
+) -> anyhow::Result<Record> {
     // Create the solver as a child process.
     let mut solver = Command::new(&solver)
         .stdin(Stdio::piped())
@@ -121,7 +134,13 @@ fn score_single(solver: &Path, mut wedding: &File, wedding_name: PathBuf) -> any
     let metrics = Metrics::new(&plan, &problem_data.relations);
     let score = Record {
         wedding: wedding_name,
+        n_people: problem_data.relations.len(),
+        n_tables: problem_data.n_tables,
         total_happiness: metrics.total_happiness(),
+        mean_happiness: metrics.mean_happiness(),
+        median_happiness: metrics.median_happiness(),
+        min_happiness: metrics.min_happiness(),
+        max_happiness: metrics.max_happiness(),
         n_lonely: metrics.n_lonely(),
     };
     Ok(score)
