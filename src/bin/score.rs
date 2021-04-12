@@ -48,13 +48,14 @@ fn run(opt: Opt) -> anyhow::Result<()> {
 }
 
 fn create_out_file(solver: &Path, problem: &Path) -> anyhow::Result<File> {
-    let solver_name = solver.file_name().unwrap();
-    let problem_name = problem.file_name().unwrap();
+    let solver_name = solver.file_stem().unwrap();
+    let problem_name = problem.file_stem().unwrap();
+
     let mut csv_name = solver_name.to_owned();
     csv_name.push("_");
     csv_name.push(problem_name);
-    let path = problem.with_file_name(csv_name).with_extension("csv");
 
+    let path = problem.with_file_name(csv_name).with_extension("csv");
     File::create(&path).with_context(move || format!("Could not create output file: {:?}", path))
 }
 
