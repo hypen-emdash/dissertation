@@ -46,8 +46,29 @@ where
             queue.push_back(random_plan(&mut self.rng, relationships.len(), n_tables))
         }
 
-        loop {
-            break;
+        // Measure frequency of updating solutions.
+        let mut n_tries = queue.len();
+        let mut n_updates = queue.len();
+
+        while n_updates as f64 >= self.termination_threshold.into_inner() * n_tries as f64 {
+            // Try a new solution and compare it to the front *and* back of our queue.
+            let mut new_plan = queue.back().cloned().expect("nonempty queue");
+            random_change(&mut self.rng, &mut new_plan, n_tables, table_size);
+            let new_metrics = Metrics::new(&new_plan, relationships);
+            let new_happiness = new_metrics.total_happiness();
+
+            let compare_to: [&Plan; 2] = [queue.front().unwrap(), queue.back().unwrap()];
+            let to_update = compare_to
+                .iter()
+                .any(|other| new_happiness > Metrics::new(other, relationships).total_happiness());
+
+            if to_update {
+                queue.pop_front();
+                queue.push_back(new_plan);
+                n_updates += 1;
+            }
+
+            n_tries += 1;
         }
 
         queue
@@ -55,6 +76,19 @@ where
             .max_by_key(|plan| Metrics::new(plan, &relationships).total_happiness())
             .expect("Queue length is not zero.")
     }
+}
+
+fn random_change<R>(mut rng: R, plan: &mut Plan, n_tables: usize, table_size: usize)
+where
+    R: Rng,
+{
+    let table1 = rng.gen_range(0..n_tables);
+    let table2 = rng.gen_range(0..n_tables);
+
+    let seat1 = rng.gen_range(0..table_size);
+    let seat2 = rng.gen_range(0..table_size);
+
+    swap_guests(plan, (table1, seat1), (table2, seat2));
 }
 
 fn swap_guests(
