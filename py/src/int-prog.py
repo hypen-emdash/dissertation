@@ -1,4 +1,4 @@
-#!int-prog/venv/bin/python
+#!py/venv/bin/python
 
 import json
 import sys
