@@ -30,6 +30,10 @@ struct Record {
     min_happiness: i64,
     max_happiness: i64,
     n_lonely: usize,
+
+    // Time spent on the problem.
+    // Can't use `Duration` becuase this is going into a csv.
+    seconds: f64,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -142,6 +146,7 @@ fn score_single(
         min_happiness: metrics.min_happiness(),
         max_happiness: metrics.max_happiness(),
         n_lonely: metrics.n_lonely(),
+        seconds: 0.0,
     };
     Ok(score)
 }
