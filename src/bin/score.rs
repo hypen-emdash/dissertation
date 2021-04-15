@@ -121,6 +121,11 @@ fn score_single(
         .flush()
         .with_context(|| "Could not flush solver's stdin.")?;
 
+    // Take note of when the child started solving
+    // AFTER we give them the data. We don't want to time
+    // it's I/O performance.
+    let time_begin = std::time::Instant::now();
+
     // While waiting for the solver, deserialise the problem ourselves
     // so we can evaluate the solver's performance.
     let problem_data: Problem =
@@ -128,9 +133,14 @@ fn score_single(
 
     // Get the solution from the child.
     let output = solver.wait_with_output()?;
+
+    // Find out how long the child took.
+    let duration = time_begin.elapsed();
+
     if !output.stderr.is_empty() {
         return Err(anyhow!("Solver experienced a problem."));
     }
+
     let plan: Plan = serde_json::from_slice(&output.stdout)
         .with_context(|| "Could not parse output from solver.")?;
 
@@ -146,7 +156,7 @@ fn score_single(
         min_happiness: metrics.min_happiness(),
         max_happiness: metrics.max_happiness(),
         n_lonely: metrics.n_lonely(),
-        seconds: 0.0,
+        seconds: duration.as_secs_f64(),
     };
     Ok(score)
 }
@@ -158,6 +168,8 @@ where
     let mut scores = Vec::new();
     while let Some(Ok(entry)) = suite.next() {
         scores.extend(score_path(solver, &entry.path())?);
+        dbg!(&scores);
+        eprintln!();
     }
     Ok(scores)
 }
