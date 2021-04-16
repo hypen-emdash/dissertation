@@ -10,9 +10,9 @@ type Float = ordered_float::NotNan<f64>;
 // The ratio for exponential-moving-average, which
 // is used to terminate the hill-climbing algorithms.
 // SAFETY: the argument to `unchecked_new` must not be NaN.
-// 2.0 is a constant, and not NaN.
+// The value is constant, so we can see it is not NaN.
 // We use the unsafe version because `Float::new` is not `const`.
-const EMA_FACTOR: Float = unsafe { Float::unchecked_new(2.0) };
+const EMA_FACTOR: Float = unsafe { Float::unchecked_new(0.01) };
 
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 struct Swap {
@@ -66,15 +66,16 @@ where
             let old_metrics = Metrics::new(&plan, relationships);
 
             // Make the change and measure new utility.
-            make_swap(&mut plan, swap);
             let new_metrics = Metrics::new(&plan, relationships);
 
-            // If we made things worse, go back.
+            // Check if we made things better or worse.
             let updated: Float;
-            if new_metrics.total_happiness() < old_metrics.total_happiness() {
-                make_swap(&mut plan, swap);
+            if new_metrics.total_happiness() > old_metrics.total_happiness() {
+                // Happy case. We found a better solution.
                 updated = Float::new(1.0).unwrap();
             } else {
+                // Sad case. We need to go back by performing the same swap again.
+                make_swap(&mut plan, swap);
                 updated = Float::new(0.0).unwrap();
             }
 
@@ -121,11 +122,9 @@ where
             queue.push_back(random_plan(&mut self.rng, relationships.len(), n_tables))
         }
 
-        // Measure frequency of updating solutions.
-        let mut n_tries = queue.len();
-        let mut n_updates = queue.len();
+        let mut update_ema = Float::new(1.0).unwrap();
 
-        while n_updates as f64 >= self.termination_threshold.into_inner() * n_tries as f64 {
+        while update_ema >= self.termination_threshold {
             // Try a new solution and compare it to the front *and* back of our queue.
             let mut new_plan = queue.back().cloned().expect("nonempty queue");
             let swap = get_random_swap(&mut self.rng, n_tables, table_size);
@@ -139,13 +138,16 @@ where
                 .iter()
                 .any(|other| new_happiness > Metrics::new(other, relationships).total_happiness());
 
+            let updated: Float;
             if to_update {
                 queue.pop_front();
                 queue.push_back(new_plan);
-                n_updates += 1;
+                updated = Float::new(1.0).unwrap();
+            } else {
+                updated = Float::new(0.0).unwrap();
             }
 
-            n_tries += 1;
+            update_ema = (EMA_FACTOR * updated) + ((Float::new(1.0).unwrap() - EMA_FACTOR) * update_ema);
         }
 
         queue
