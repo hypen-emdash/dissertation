@@ -7,6 +7,13 @@ use rand::prelude::*;
 
 type Float = ordered_float::NotNan<f64>;
 
+// The ratio for exponential-moving-average, which
+// is used to terminate the hill-climbing algorithms.
+// SAFETY: the argument to `unchecked_new` must not be NaN.
+// 2.0 is a constant, and not NaN.
+// We use the unsafe version because `Float::new` is not `const`.
+const EMA_FACTOR: Float = unsafe { Float::unchecked_new(2.0) };
+
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 struct Swap {
     table1: usize,
@@ -18,17 +25,17 @@ struct Swap {
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct HillClimbingPlanner<R> {
     rng: R,
-    iter_lim: u64,
+    termination_threshold: Float,
 }
 
 impl<R> HillClimbingPlanner<R>
 where
     R: Rng,
 {
-    pub fn new(rng: R, iteration_limit: u64) -> Self {
+    pub fn new(rng: R) -> Self {
         Self {
             rng,
-            iter_lim: iteration_limit,
+            termination_threshold: Float::new(0.02).unwrap(),
         }
     }
 }
@@ -43,7 +50,11 @@ where
         let table_size = relationships.len() / n_tables;
 
         let mut plan = random_plan(&mut self.rng, relationships.len(), n_tables);
-        for _ in 0..self.iter_lim {
+
+        // A moving average of how often we update our best solution.
+        let mut update_ema = Float::new(1.0).unwrap();
+
+        while update_ema >= self.termination_threshold {
             // Propose a small random change.
 
             // TODO: if we use a priority queue (or similar) for the tables, we
@@ -59,9 +70,15 @@ where
             let new_metrics = Metrics::new(&plan, relationships);
 
             // If we made things worse, go back.
+            let updated: Float;
             if new_metrics.total_happiness() < old_metrics.total_happiness() {
                 make_swap(&mut plan, swap);
+                updated = Float::new(1.0).unwrap();
+            } else {
+                updated = Float::new(0.0).unwrap();
             }
+
+            update_ema = (EMA_FACTOR * updated) + ((Float::new(1.0).unwrap() - EMA_FACTOR) * update_ema);
         }
         plan
     }
