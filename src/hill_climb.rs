@@ -7,6 +7,14 @@ use rand::prelude::*;
 
 type Float = ordered_float::NotNan<f64>;
 
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+struct Swap {
+    table1: usize,
+    seat1: usize,
+    table2: usize,
+    seat2: usize,
+}
+
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct HillClimbingPlanner<R> {
     rng: R,
@@ -41,22 +49,18 @@ where
             // TODO: if we use a priority queue (or similar) for the tables, we
             // can increase the likelihood that the most miserable person will
             // be moved.
-            let table1 = self.rng.gen_range(0..n_tables);
-            let table2 = self.rng.gen_range(0..n_tables);
-
-            let seat1 = self.rng.gen_range(0..table_size);
-            let seat2 = self.rng.gen_range(0..table_size);
+            let swap = get_random_swap(&mut self.rng, n_tables, table_size);
 
             // Measure current utility.
             let old_metrics = Metrics::new(&plan, relationships);
 
             // Make the change and measure new utility.
-            swap_guests(&mut plan, (table1, seat1), (table2, seat2));
+            make_swap(&mut plan, swap);
             let new_metrics = Metrics::new(&plan, relationships);
 
             // If we made things worse, go back.
             if new_metrics.total_happiness() < old_metrics.total_happiness() {
-                swap_guests(&mut plan, (table1, seat2), (table2, seat2));
+                make_swap(&mut plan, swap);
             }
         }
         plan
@@ -107,7 +111,9 @@ where
         while n_updates as f64 >= self.termination_threshold.into_inner() * n_tries as f64 {
             // Try a new solution and compare it to the front *and* back of our queue.
             let mut new_plan = queue.back().cloned().expect("nonempty queue");
-            random_change(&mut self.rng, &mut new_plan, n_tables, table_size);
+            let swap = get_random_swap(&mut self.rng, n_tables, table_size);
+            make_swap(&mut new_plan, swap);
+
             let new_metrics = Metrics::new(&new_plan, relationships);
             let new_happiness = new_metrics.total_happiness();
 
@@ -132,7 +138,7 @@ where
     }
 }
 
-fn random_change<R>(mut rng: R, plan: &mut Plan, n_tables: usize, table_size: usize)
+fn get_random_swap<R>(mut rng: R, n_tables: usize, table_size: usize) -> Swap
 where
     R: Rng,
 {
@@ -142,17 +148,18 @@ where
     let seat1 = rng.gen_range(0..table_size);
     let seat2 = rng.gen_range(0..table_size);
 
-    swap_guests(plan, (table1, seat1), (table2, seat2));
+    Swap {
+        table1,
+        table2,
+        seat1,
+        seat2,
+    }
 }
 
-fn swap_guests(
-    plan: &mut [Vec<usize>],
-    (table1, seat1): (usize, usize),
-    (table2, seat2): (usize, usize),
-) {
-    let tmp = plan[table1][seat1];
-    plan[table1][seat1] = plan[table2][seat2];
-    plan[table2][seat2] = tmp;
+fn make_swap(plan: &mut [Vec<usize>], swap: Swap) {
+    let tmp = plan[swap.table1][swap.seat1];
+    plan[swap.table1][swap.seat1] = plan[swap.table2][swap.seat2];
+    plan[swap.table2][swap.seat2] = tmp;
 }
 
 fn random_plan<R>(mut rng: R, n_guests: usize, n_tables: usize) -> Plan
