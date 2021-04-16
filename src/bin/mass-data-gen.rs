@@ -50,7 +50,11 @@ fn mass_generate_data(spec_file: &File, target_dir: &Path) -> anyhow::Result<()>
             let mut command = Command::new("./target/release/data-gen");
             for word in spec.split_whitespace() {
                 command.arg(word);
-                filename.push(word);
+                // Pad numbers in the filenames with 0s so alphabetical ordering coincides with size.
+                match word.parse::<usize>() {
+                    Ok(n) => filename.push(format!("{:03}", n)),
+                    Err(_) => filename.push(word),
+                }
                 filename.push("_");
             }
             filename.push(thread_rng().next_u32().to_string());
