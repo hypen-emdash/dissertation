@@ -14,6 +14,10 @@ type Float = ordered_float::NotNan<f64>;
 // We use the unsafe version because `Float::new` is not `const`.
 const EMA_FACTOR: Float = unsafe { Float::unchecked_new(0.01) };
 
+fn shift_ema(old_ema: Float, new_val: Float) -> Float {
+    (EMA_FACTOR * new_val) + ((Float::new(1.0).unwrap() - EMA_FACTOR) * old_ema)
+}
+
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 struct Swap {
     table1: usize,
@@ -32,10 +36,10 @@ impl<R> HillClimbingPlanner<R>
 where
     R: Rng,
 {
-    pub fn new(rng: R) -> Self {
+    pub fn new(rng: R, termination_threshold: Float) -> Self {
         Self {
             rng,
-            termination_threshold: Float::new(0.02).unwrap(),
+            termination_threshold,
         }
     }
 }
@@ -79,7 +83,7 @@ where
                 updated = Float::new(0.0).unwrap();
             }
 
-            update_ema = (EMA_FACTOR * updated) + ((Float::new(1.0).unwrap() - EMA_FACTOR) * update_ema);
+            update_ema = shift_ema(update_ema, updated);
         }
         plan
     }
@@ -98,11 +102,11 @@ impl<R> LahcPlanner<R>
 where
     R: Rng,
 {
-    pub fn new(rng: R) -> Self {
+    pub fn new(rng: R, termination_threshold: Float) -> Self {
         Self {
             rng,
             queue_size: NonZeroUsize::new(1000).unwrap(),
-            termination_threshold: Float::new(0.02).unwrap(),
+            termination_threshold,
         }
     }
 }
@@ -147,7 +151,7 @@ where
                 updated = Float::new(0.0).unwrap();
             }
 
-            update_ema = (EMA_FACTOR * updated) + ((Float::new(1.0).unwrap() - EMA_FACTOR) * update_ema);
+            update_ema = shift_ema(update_ema, updated);
         }
 
         queue

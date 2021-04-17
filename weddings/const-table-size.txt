@@ -1,0 +1,65 @@
+rand 5 10
+rand 5 10
+rand 5 10
+rand 5 10
+rand 5 10
+
+complete 5 10
+complete 5 10
+complete 5 10
+complete 5 10
+complete 5 10
+
+ring 5 10
+ring 5 10
+ring 5 10
+ring 5 10
+ring 5 10
+
+rand 10 10
+rand 10 10
+rand 10 10
+rand 10 10
+rand 10 10
+
+complete 10 10
+complete 10 10
+complete 10 10
+complete 10 10
+complete 10 10
+
+rand 50 10
+rand 50 10
+rand 50 10
+rand 50 10
+rand 50 10
+
+ring 50 10
+ring 50 10
+ring 50 10
+ring 50 10
+ring 50 10
+
+complete 50 10
+complete 50 10
+complete 50 10
+complete 50 10
+complete 50 10
+
+rand 100 10
+rand 100 10
+rand 100 10
+rand 100 10
+rand 100 10
+
+ring 100 10
+ring 100 10
+ring 100 10
+ring 100 10
+ring 100 10
+
+complete 100 10
+complete 100 10
+complete 100 10
+complete 100 10
+complete 100 10
