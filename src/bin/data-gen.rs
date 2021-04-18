@@ -15,6 +15,7 @@ enum GenerationMethod {
     Random,
     CompleteComponents,
     Rings,
+    Tense,
 }
 
 impl FromStr for GenerationMethod {
@@ -25,6 +26,7 @@ impl FromStr for GenerationMethod {
             "rand" | "random" => Ok(GenerationMethod::Random),
             "comp" | "complete" | "complete-components" => Ok(GenerationMethod::CompleteComponents),
             "ring" | "rings" => Ok(GenerationMethod::Rings),
+            "tense" => Ok(GenerationMethod::Tense),
             _ => Err(anyhow!("Unrecognised generation method")),
         }
     }
@@ -54,6 +56,7 @@ fn run(opt: Opt) -> anyhow::Result<()> {
         GenerationMethod::Random => random_relations(opt.n_tables * opt.table_size),
         GenerationMethod::CompleteComponents => complete_components(opt.n_tables, opt.table_size),
         GenerationMethod::Rings => rings(opt.n_tables, opt.table_size),
+        GenerationMethod::Tense => tense(opt.n_tables * opt.table_size),
     };
     let problem = Problem {
         relations,
@@ -66,6 +69,27 @@ fn run(opt: Opt) -> anyhow::Result<()> {
     };
     serde_json::to_writer(&mut out, &problem)?;
     Ok(())
+}
+
+// Tense weddings where people have strong feelings about other guests,
+// positive or negative.
+fn tense(n_guests: usize) -> GuestRelations {
+    let mut rng = thread_rng();
+    let mut relations = vec![vec![0; n_guests]; n_guests];
+
+    for i in 0..n_guests {
+        for j in 0..i {
+            // Assume relations are normally distributed
+            let r: f64 = {
+                let base_dist = rand::distributions::Uniform::new(0.0, 1.0);
+                (0..12).map(|_| base_dist.sample(&mut rng)).sum::<f64>() - 6.0
+            };
+            relations[i][j] = (r * 30.0) as i64;
+            relations[j][i] = (r * 30.0) as i64;
+        }
+    }
+
+    GuestRelations::new(relations)
 }
 
 /// Tables where everyone knows each other.
