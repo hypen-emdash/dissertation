@@ -1,0 +1,29 @@
+tense 2 2
+tense 2 2
+tense 2 2
+tense 2 2
+tense 2 2
+
+tense 7 7
+tense 7 7
+tense 7 7
+tense 7 7
+tense 7 7
+
+tense 10 10
+tense 10 10
+tense 10 10
+tense 10 10
+tense 10 10
+
+tense 12 12
+tense 12 12
+tense 12 12
+tense 12 12
+tense 12 12
+
+tense 14 14
+tense 14 14
+tense 14 14
+tense 14 14
+tense 14 14
