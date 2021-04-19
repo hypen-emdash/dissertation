@@ -4,12 +4,13 @@ import json
 import sys
 
 from dataclasses import dataclass
+from typing import List
 from ortools.linear_solver import pywraplp
 
 
 @dataclass
 class Problem:
-    guest_relations: int
+    guest_relations: List[int]
     n_tables: int
 
 
@@ -123,7 +124,19 @@ def add_constraints(solver, variables):
 
 def get_problem():
     problem_json = json.load(sys.stdin)
-    return Problem(problem_json["relations"]["relationships"], problem_json["n_tables"])
+    problem = Problem(problem_json["relations"]["relationships"], problem_json["n_tables"])
+
+    # We require positive weights only for linearisation, otherwise the algorithm can
+    # just lie and ignore the fact that two people are sat next to each other.
+
+    worst = min(min(rs) for rs in problem.guest_relations)
+    if worst < 0:
+        shift = abs(worst)
+        for rs in problem.guest_relations:
+            for i in range(len(rs)):
+                rs[i] += shift
+    
+    return problem
 
 
 def display_sol(solution):
