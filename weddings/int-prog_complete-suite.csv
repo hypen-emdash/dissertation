@@ -1,0 +1,6 @@
+wedding,n_people,n_tables,total_happiness,mean_happiness,median_happiness,min_happiness,max_happiness,n_lonely,seconds
+./weddings/complete-suite/complete_002_002_3301230336.txt,4,2,4,1.0,1.0,1,1,0,0.089016402
+./weddings/complete-suite/complete_012_012_1059202890.txt,144,12,1584,11.0,11.0,11,11,0,18.012825638
+./weddings/complete-suite/complete_010_010_36559773.txt,100,10,900,9.0,9.0,9,9,0,4.764302269
+./weddings/complete-suite/complete_014_014_3402026922.txt,196,14,2548,13.0,13.0,13,13,0,40.715630522
+./weddings/complete-suite/complete_007_007_1736249561.txt,49,7,294,6.0,6.0,6,6,0,0.608368057
