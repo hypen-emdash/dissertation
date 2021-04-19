@@ -126,7 +126,7 @@ def get_problem():
     problem_json = json.load(sys.stdin)
     problem = Problem(problem_json["relations"]["relationships"], problem_json["n_tables"])
 
-    # We require positive weights only for linearisation, otherwise the algorithm can
+    # We require nonnegative weights only for linearisation, otherwise the algorithm can
     # just lie and ignore the fact that two people are sat next to each other.
 
     worst = min(min(rs) for rs in problem.guest_relations)
