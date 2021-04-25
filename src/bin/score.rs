@@ -161,15 +161,25 @@ fn score_single(
     Ok(score)
 }
 
-fn score_suite<I, E>(solver: &Path, mut suite: I) -> anyhow::Result<Vec<Record>>
+fn score_suite<I, E>(solver: &Path, suite: I) -> anyhow::Result<Vec<Record>>
 where
     I: Iterator<Item = Result<DirEntry, E>>,
 {
-    let mut scores = Vec::new();
-    while let Some(Ok(entry)) = suite.next() {
-        scores.extend(score_path(solver, &entry.path())?);
+    // Gather the whole suite and go through it alphabetically.
+    // The files are named such that alphabetical precedence => smaller problem
+    // This means we can find out when things start to get ugly in performance.
+
+    let mut entries: Vec<DirEntry> = suite.filter_map(Result::ok).collect();
+    entries.sort_unstable_by_key(|entry| entry.path());
+
+    let mut scores = Vec::with_capacity(entries.len());
+    for entry in entries {
+        let path_to_solve = &entry.path();
+        dbg!(path_to_solve);
+        scores.extend(score_path(solver, path_to_solve)?);
         dbg!(&scores);
         eprintln!();
     }
+
     Ok(scores)
 }
