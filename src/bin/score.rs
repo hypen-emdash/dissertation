@@ -74,13 +74,19 @@ fn create_out_file(solver: &Path, problem: &Path) -> anyhow::Result<File> {
 
 fn score_path(solver: &Path, problem: &Path) -> anyhow::Result<Vec<Record>> {
     if problem.is_file() {
-        let wedding_file = File::open(problem)
-            .with_context(|| format!("Could not open problem file: {:?}", problem))?;
+        const N_RUNS: usize = 10;
 
-        let record = score_single(solver, &wedding_file, problem.to_owned())
-            .with_context(|| format!("Could not run {:?} on wedding {:?}.", solver, problem))?;
+        let records: anyhow::Result<Vec<Record>> = (0..N_RUNS)
+            .map(|_| {
+                let wedding_file = File::open(problem)
+                    .with_context(|| format!("Could not open problem file: {:?}", problem))?;
+                score_single(solver, &wedding_file, problem.to_owned()).with_context(|| {
+                    format!("Could not run {:?} on wedding {:?}.", solver, problem)
+                })
+            })
+            .collect();
 
-        Ok(vec![record])
+        records
     } else if problem.is_dir() {
         let entries = fs::read_dir(problem)
             .with_context(|| format!("Could not open directory {:?}.", problem))?;
