@@ -1,4 +1,5 @@
 ring 2 2
+ring 3 3
 ring 7 7
 ring 10 10
 ring 12 12

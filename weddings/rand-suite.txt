@@ -4,6 +4,12 @@ rand 2 2
 rand 2 2
 rand 2 2
 
+rand 3 3
+rand 3 3
+rand 3 3
+rand 3 3
+rand 3 3
+
 rand 7 7
 rand 7 7
 rand 7 7
