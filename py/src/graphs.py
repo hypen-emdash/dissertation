@@ -67,18 +67,17 @@ def main():
     #         df = pd.read_csv(get_csv_path(solver, suite))
     #         df = average_by_size(df)
     #         summary(df, solver, suite)
-    
+
     # n_lonely graphs, all solvers on one graph, one graph for each suite
     # for suite in SUITES:
     #     paths = [get_csv_path(solver, suite) for solver in SOLVERS]
     #     dfs = [average_by_size(pd.read_csv(path)) for path in paths]
     #     line_graph(dfs, "n_people", "n_lonely", SOLVERS, suite)
-    
-
 
 
 def get_csv_path(solver, suite):
     return f"weddings/{solver}_{suite}.csv"
+
 
 def average_by_wedding(df):
     grouped = df.groupby("wedding")
@@ -157,6 +156,7 @@ def summary(df, solver, suite):
     ax.set_title(f"{solver}, {suite}")
     ax.legend()
     plt.show()
+
 
 if __name__ == "__main__":
     main()
