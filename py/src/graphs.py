@@ -1,8 +1,5 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import copy
-
-import sys
 
 ALL_COLUMNS = [
     "wedding",
@@ -57,12 +54,6 @@ SUITES = ["complete-suite", "ring-suite", "rand-suite", "tense-suite"]
 
 
 def main():
-    # paths = sys.argv[1:]
-    # raw_dfs = [pd.read_csv(path) for path in paths]
-    # wedding_dfs = [average_by_wedding(df) for df in raw_dfs]
-    # size_dfs = [average_by_size(df) for df in wedding_dfs]
-
-    # scatter_graph(raw_dfs, "n_tables", "seconds", log_y=True)
 
     # Time vs size, with all solvers on the same graph, a graph for each suite.
     for suite in SUITES:
