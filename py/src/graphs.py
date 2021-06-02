@@ -56,17 +56,17 @@ SUITES = ["complete-suite", "ring-suite", "rand-suite", "tense-suite"]
 def main():
 
     # Time vs size, with all solvers on the same graph, a graph for each suite.
-    for suite in SUITES:
-        paths = [f"weddings/{solver}_{suite}.csv" for solver in SOLVERS]
-        dfs = [pd.read_csv(path) for path in paths]
-        scatter_graph(dfs, "n_people", "seconds", SOLVERS, suite)
+    # for suite in SUITES:
+    #     paths = [f"weddings/{solver}_{suite}.csv" for solver in SOLVERS]
+    #     dfs = [pd.read_csv(path) for path in paths]
+    #     scatter_graph(dfs, "n_people", "seconds", SOLVERS, suite)
 
     # summary quality vs size, a graph for each
-    # for suite in SUITES:
-    #     for solver in SOLVERS:
-    #         df = pd.read_csv(get_csv_path(solver, suite))
-    #         df = average_by_size(df)
-    #         summary(df, solver, suite)
+    for suite in SUITES:
+        for solver in SOLVERS:
+            df = pd.read_csv(get_csv_path(solver, suite))
+            df = average_by_size(df)
+            summary(df, solver, suite)
 
     # n_lonely graphs, all solvers on one graph, one graph for each suite
     # for suite in SUITES:
@@ -141,20 +141,15 @@ def line_graph(dataframes, x_col, y_col, labels, title, log_y=False):
 def summary(df, solver, suite):
     fig, ax = plt.subplots()
 
-    ax.plot(df["n_people"], df["max_happiness"])
-    ax.plot(df["n_people"], df["mean_happiness"])
-    ax.plot(df["n_people"], df["median_happiness"])
-    ax.plot(df["n_people"], df["min_happiness"])
+    #ax.plot(df["n_people"], df["mean_happiness"])
 
-    ax.scatter(df["n_people"], df["max_happiness"], label="max", marker=".")
-    ax.scatter(df["n_people"], df["mean_happiness"], label="mean", marker="+")
-    ax.scatter(df["n_people"], df["median_happiness"], label="median", marker="x")
-    ax.scatter(df["n_people"], df["min_happiness"], label="min", marker=".")
+    ax.scatter(df["n_people"], df["max_happiness"], label="max", marker="_", color="b")
+    ax.plot(df["n_people"], df["mean_happiness"], label="mean", color="b")
+    ax.scatter(df["n_people"], df["min_happiness"], label="min", marker="_", color="b")
 
     ax.set_xlabel(DISPLAY_COLUMN_NAMES["n_people"])
     ax.set_ylabel("Happiness")
     ax.set_title(f"{solver}, {suite}")
-    ax.legend()
     plt.show()
 
 
