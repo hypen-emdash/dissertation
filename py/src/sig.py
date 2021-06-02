@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import scipy.stats
 
 METRIC_COLUMNS = [
-    "total_happiness",
     "mean_happiness",
     "median_happiness",
     "min_happiness",
