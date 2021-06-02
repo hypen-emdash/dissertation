@@ -141,8 +141,6 @@ def line_graph(dataframes, x_col, y_col, labels, title, log_y=False):
 def summary(df, solver, suite):
     fig, ax = plt.subplots()
 
-    #ax.plot(df["n_people"], df["mean_happiness"])
-
     ax.scatter(df["n_people"], df["max_happiness"], label="max", marker="_", color="b")
     ax.plot(df["n_people"], df["mean_happiness"], label="mean", color="b")
     ax.scatter(df["n_people"], df["min_happiness"], label="min", marker="_", color="b")
