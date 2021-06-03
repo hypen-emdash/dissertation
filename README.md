@@ -1,21 +1,10 @@
-# Wedding Seating Plan
+# Daniel Joffe Submission
 
-## Formalising the Problem
+This project contains the code for different approaches to the dinner-seating problem.
 
-### Input
+It is required to have an installation of Rust 1.52.1 and Python 3.7. Later versions of Rust should work, and later versions of Python will hopefully work.
 
-The input is a complete, weighted, undirected graph $G = (V, E)$, and a natural number $n$.
+In `./py/` you'll find the source for the integer programming solver, and in `./src/` you'll find the source code for all the Rust code used in this project (everything that's not IP). The source code for Rust executables is in `./src/bin`. `Cargo.toml` and `Cargo.lock` are used for the Rust build system. Inside `target` is all the intermediate steps for Rust compilation, with the executables in `./target/release/`. I don't know what OS and architecture you're using, so then contents are likely useless, but the manual for the course said to include executables, so they're there anyway. When you compile the Rust code with `cargo build --release`, you will likely get a deprecation warning; it is safe to ignore.
 
-+ $V$ is the guest list.
-+ Between any two guests $u$ and $v$, there is an integer weighting $E_{u, v}$. $0$ if they have never met, positive if they have a positive relationship and negative if they have a negative relationship. For example, If two people simply know each other, they have a weight of $1$; if they're romantically involved they have a weight of $50$. Each guest has a self-relationship of $0$.
-+ $n$ is the number of tables. It must divide the number of guests.
 
-### Output
-
-The output $P$ is a partition of $V$ with $n$ bins. Each bin must be of cardinality $\frac{V}{n}$.
-
-### Comparison
-
-Solutions are optimised to achieve maximum total happiness, calculated by the formula $\sum_{p \in P} \sum_{u, v \in p} E_{u, v}$.
-
-Other measures that are "nice to have" but not known to the solvers include minimum and median happiness of an individual, and the number of people with no positive relations at their table.
+In `/weddings` you'll find the schematics for creating suites of test data, the test data itself (inside directories with the same name as the schematics), and the results of different solvers on that test data.
