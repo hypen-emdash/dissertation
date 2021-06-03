@@ -71,8 +71,8 @@ fn run(opt: Opt) -> anyhow::Result<()> {
     Ok(())
 }
 
-// Tense weddings where people have strong feelings about other guests,
-// positive or negative.
+/// Tense weddings where people have strong feelings about other guests,
+/// positive or negative.
 fn tense(n_guests: usize) -> GuestRelations {
     let mut rng = thread_rng();
     let mut relations = vec![vec![0; n_guests]; n_guests];
@@ -112,6 +112,8 @@ fn complete_components(n_tables: usize, table_size: usize) -> GuestRelations {
     GuestRelations::new(relations)
 }
 
+/// Tables where A knows B knows C knows D knows E knows A,
+/// or similar patterns.
 fn rings(n_tables: usize, table_size: usize) -> GuestRelations {
     let n_guests = n_tables * table_size;
     let mut relations = vec![vec![0; n_guests]; n_guests];
@@ -127,7 +129,11 @@ fn rings(n_tables: usize, table_size: usize) -> GuestRelations {
     GuestRelations::new(relations)
 }
 
+/// Assign everyone a small number of friends, and then a smaller number
+/// of friends-of-friends.
 fn random_relations(n_guests: usize) -> GuestRelations {
+    // We use an adjacency-list representation inside the algorithm,
+    // and convert it to an adjacency matrix at the end.
     let mut friend_lists = random_friend_lists(n_guests);
     friends_of_friends(&mut friend_lists);
 
@@ -177,6 +183,8 @@ fn friends_of_friends(friend_lists: &mut [Vec<usize>]) {
     }
 }
 
+/// Pick someone out of the crowd for our `person` to be friends with.
+/// They cannot be friends with themselves.
 fn random_associate<R>(mut rng: R, person: usize, choices: Range<usize>) -> usize
 where
     R: Rng,
@@ -189,6 +197,8 @@ where
     }
 }
 
+/// Takes an adjacency list and fills up an adjacency matrix with the same
+/// data. Can only fill in one value for the nonzero entries of the matrix.
 fn fill_adj_matrix(lists: &[Vec<usize>], val: i64, matrix: &mut [Vec<i64>]) {
     for (guest_id, rel_list) in lists.iter().enumerate() {
         for &rel_id in rel_list {
