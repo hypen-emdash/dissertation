@@ -10,7 +10,7 @@ from ortools.linear_solver import pywraplp
 
 @dataclass
 class Problem:
-    guest_relations: List[int]
+    guest_relations: List[List[int]]
     n_tables: int
 
 
