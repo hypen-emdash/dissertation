@@ -129,7 +129,7 @@ def get_problem():
     )
 
     # We require nonnegative weights only for linearisation, otherwise the algorithm can
-    # just lie and ignore the fact that two people are sat next to each other.
+    # just lie and ignore the fact that two people are sat next to each other if they don't get along.
 
     worst = min(min(rs) for rs in problem.guest_relations)
     if worst < 0:
