@@ -46,18 +46,25 @@ impl GuestRelations {
     }
 }
 
+/// A seating plan. The outer vector is a list of tables.
+/// Each table has a list of people.
+/// People are 0-indexed, using the same scheme as `GuestRelations`.
 pub type Plan = Vec<Vec<usize>>;
 
+/// A problem-instance, which solvers should read from stdin with json.
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Problem {
     pub relations: GuestRelations,
     pub n_tables: usize,
 }
 
+/// The main trait of the project - implement this for your solver.
 pub trait SeatingPlanner {
     fn plan(&mut self, problem: &Problem) -> Plan;
 }
 
+/// Once a solver is constructed, pass it to this function to
+/// read the problem and write the solution.
 pub fn run<T>(mut planner: T) -> anyhow::Result<()>
 where
     T: SeatingPlanner,
