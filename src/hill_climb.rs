@@ -7,17 +7,32 @@ use rand::prelude::*;
 
 type Float = ordered_float::NotNan<f64>;
 
-// The ratio for exponential-moving-average, which
-// is used to terminate the hill-climbing algorithms.
+/// The EMA factor is the ratio for exponential-moving-average,
+/// which decides how much heavily new information should be weighted
+/// over our current estimates.
+/// This is used to terminate the hill-climbing algorithms. We use a
+/// fairly small algorithm so as not to terminate prematurely.
 // SAFETY: the argument to `unchecked_new` must not be NaN.
 // The value is constant, so we can see it is not NaN.
 // We use the unsafe version because `Float::new` is not `const`.
+//
+// Technically, `unchecked_new` is deprecated in favour of `new_unchecked`
+// but the only difference is the name (a good change in my opinion, since
+// it is more consistent with `std`) and the replacement is only in a newer
+// version of the library. I would update this code to reflect that, but
+// now that the code has run and I've used it to gather results, it's more
+// important to keep it as it is.
 const EMA_FACTOR: Float = unsafe { Float::unchecked_new(0.01) };
 
+/// Calculates the new exponential moving average, based on our
+/// previous estimate of it, and one new value.
+/// Formula taken from Operating Systems Concepts, page 209.
+/// estimate = a*x + (1-a)*estimate
 fn shift_ema(old_ema: Float, new_val: Float) -> Float {
     (EMA_FACTOR * new_val) + ((Float::new(1.0).unwrap() - EMA_FACTOR) * old_ema)
 }
 
+/// A swap of two people based on their locations.
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 struct Swap {
     table1: usize,
@@ -29,6 +44,8 @@ struct Swap {
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct HillClimbingPlanner<R> {
     rng: R,
+
+    /// How infrequent do updates need to get before we give up?
     termination_threshold: Float,
 }
 
@@ -53,6 +70,7 @@ where
         let n_tables = problem.n_tables;
         let table_size = relationships.len() / n_tables;
 
+        // Get an initial solution with no regard for quality.
         let mut plan = random_plan(&mut self.rng, relationships.len(), n_tables);
 
         // A moving average of how often we update our best solution.
@@ -60,16 +78,16 @@ where
 
         while update_ema >= self.termination_threshold {
             // Propose a small random change.
-
-            // TODO: if we use a priority queue (or similar) for the tables, we
-            // can increase the likelihood that the most miserable person will
-            // be moved.
             let swap = get_random_swap(&mut self.rng, n_tables, table_size);
 
             // Measure current utility.
             let old_metrics = Metrics::new(&plan, relationships);
 
             // Make the change and measure new utility.
+            // (Changing the solution in-place means that we don't have to
+            // allocate a whole new solution with each iteration, but we
+            // do have to keep a record of what the change was so we can
+            // undo it if necessary.)
             let new_metrics = Metrics::new(&plan, relationships);
 
             // Check if we made things better or worse.
@@ -83,6 +101,7 @@ where
                 updated = Float::new(0.0).unwrap();
             }
 
+            // Update our estimate of how often we update the solution.
             update_ema = shift_ema(update_ema, updated);
         }
         plan
@@ -92,9 +111,11 @@ where
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct LahcPlanner<R> {
     rng: R,
-    // How far back do we look?
+
+    /// How far back do we look?
     queue_size: NonZeroUsize,
-    // How infrequent do updates need to get before we give up?
+
+    /// How infrequent do updates need to get before we give up?
     termination_threshold: Float,
 }
 
@@ -130,18 +151,23 @@ where
 
         while update_ema >= self.termination_threshold {
             // Try a new solution and compare it to the front *and* back of our queue.
+            // (We can't avoid allocation as we did with naive hill-climbing as we need
+            // our old solution whether we accept the new one or not.)
             let mut new_plan = queue.back().cloned().expect("nonempty queue");
             let swap = get_random_swap(&mut self.rng, n_tables, table_size);
             make_swap(&mut new_plan, swap);
 
+            // Find out how good the new solution is.
             let new_metrics = Metrics::new(&new_plan, relationships);
             let new_happiness = new_metrics.total_happiness();
 
+            // Compare the new solution to the newest and oldest in the queue.
             let compare_to: [&Plan; 2] = [queue.front().unwrap(), queue.back().unwrap()];
             let to_update = compare_to
                 .iter()
                 .any(|other| new_happiness > Metrics::new(other, relationships).total_happiness());
 
+            // Keep the new solution if it is good enough, reject if not.
             let updated: Float;
             if to_update {
                 queue.pop_front();
@@ -151,9 +177,11 @@ where
                 updated = Float::new(0.0).unwrap();
             }
 
+            // Update our estimate of how often we update the solution.
             update_ema = shift_ema(update_ema, updated);
         }
 
+        // Select the best solution we have on record.
         queue
             .into_iter()
             .max_by_key(|plan| Metrics::new(plan, &relationships).total_happiness())
@@ -161,6 +189,12 @@ where
     }
 }
 
+/// Picks two locations out of a hat and creates the instruction to swap
+/// the people there.
+///
+/// Technically, could swap two people at the same table, or even pick
+/// exactly the same seat twice. This happens seldom enough that we
+/// don't worry about it.
 fn get_random_swap<R>(mut rng: R, n_tables: usize, table_size: usize) -> Swap
 where
     R: Rng,
@@ -179,12 +213,19 @@ where
     }
 }
 
+/// Swaps the people at the locations specified in the `Swap`.
+///
+/// We can't use `std::mem::swap` because the two locations
+/// have the same lifetime and the borrow-checker would have
+/// our heads. If you don't know what the borrow-checker is
+/// don't worry about it.
 fn make_swap(plan: &mut [Vec<usize>], swap: Swap) {
     let tmp = plan[swap.table1][swap.seat1];
     plan[swap.table1][swap.seat1] = plan[swap.table2][swap.seat2];
     plan[swap.table2][swap.seat2] = tmp;
 }
 
+/// Creates a random plan, used to initialise the hill-climbing solutions.
 fn random_plan<R>(mut rng: R, n_guests: usize, n_tables: usize) -> Plan
 where
     R: Rng,

@@ -49,6 +49,10 @@ impl GuestRelations {
 /// A seating plan. The outer vector is a list of tables.
 /// Each table has a list of people.
 /// People are 0-indexed, using the same scheme as `GuestRelations`.
+/// We use `Vec` for simplicity, but order is not for tables
+/// or people within tables.
+/// Each table should be the same size, and each guest should
+/// appear exactly once.
 pub type Plan = Vec<Vec<usize>>;
 
 /// A problem-instance, which solvers should read from stdin with json.
