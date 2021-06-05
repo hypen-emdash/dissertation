@@ -1,6 +1,0 @@
-wedding,n_people,n_tables,total_happiness,mean_happiness,median_happiness,min_happiness,max_happiness,n_lonely,seconds
-./weddings/ring-suite/ring_002_002_2459885288.txt,4,2,4,1.0,1.0,1,1,0,0.002524539
-./weddings/ring-suite/ring_012_012_1497262220.txt,144,12,122,0.8472222222222222,0.5,0,2,46,6.046504311
-./weddings/ring-suite/ring_010_010_914519058.txt,100,10,94,0.94,1.0,0,2,26,2.325611098
-./weddings/ring-suite/ring_007_007_1765413640.txt,49,7,56,1.1428571428571428,1.0,0,2,7,0.554615523
-./weddings/ring-suite/ring_014_014_2895692332.txt,196,14,158,0.8061224489795918,0.5,0,2,67,11.709634188
